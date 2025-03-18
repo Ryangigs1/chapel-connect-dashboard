@@ -7,9 +7,11 @@ import Dashboard from '@/components/Dashboard';
 import StudentList from '@/components/StudentList';
 import Calendar from '@/components/Calendar';
 import ChatBox from '@/components/ChatBox';
+import { useAuth } from '@/lib/auth';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const { user } = useAuth();
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -17,9 +19,11 @@ const Index = () => {
       
       <main className="flex-1 container py-6 space-y-6">
         <div className="hidden md:block">
-          <h1 className="text-3xl font-bold animate-fade-up">Chapel Connect Dashboard</h1>
+          <h1 className="text-3xl font-bold animate-fade-up">
+            Chapel Connect Dashboard
+          </h1>
           <p className="text-muted-foreground animate-fade-up [animation-delay:100ms]">
-            Monitor attendance, manage events, and communicate with the chaplain
+            Welcome, {user?.name || 'User'}! Monitor attendance, manage events, and communicate with the chaplain
           </p>
         </div>
         

@@ -10,9 +10,12 @@ import {
   MessageSquare,
   Settings,
   Users,
-  X
+  X,
+  LogIn
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/lib/auth';
+import UserMenu from './UserMenu';
 
 interface NavItemProps {
   to: string;
@@ -43,6 +46,7 @@ const NavItem = ({ to, icon: Icon, label, isActive, onClick }: NavItemProps) => 
 const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const { isAuthenticated } = useAuth();
   
   const isPathActive = (path: string) => {
     return location.pathname === path;
@@ -70,15 +74,27 @@ const Navbar = () => {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-6">
-          {navItems.map((item) => (
-            <NavItem
-              key={item.label}
-              to={item.to}
-              icon={item.icon}
-              label={item.label}
-              isActive={isPathActive(item.to)}
-            />
-          ))}
+          {isAuthenticated ? (
+            <>
+              {navItems.map((item) => (
+                <NavItem
+                  key={item.label}
+                  to={item.to}
+                  icon={item.icon}
+                  label={item.label}
+                  isActive={isPathActive(item.to)}
+                />
+              ))}
+              <UserMenu />
+            </>
+          ) : (
+            <Link to="/sign-in">
+              <Button variant="outline" className="flex items-center gap-2">
+                <LogIn className="h-4 w-4" />
+                Sign In
+              </Button>
+            </Link>
+          )}
         </nav>
 
         {/* Mobile Menu Button */}
@@ -96,16 +112,30 @@ const Navbar = () => {
       {mobileMenuOpen && (
         <div className="md:hidden px-4 pb-4 pt-2 animate-fade-in">
           <nav className="flex flex-col space-y-1">
-            {navItems.map((item) => (
-              <NavItem
-                key={item.label}
-                to={item.to}
-                icon={item.icon}
-                label={item.label}
-                isActive={isPathActive(item.to)}
-                onClick={() => setMobileMenuOpen(false)}
-              />
-            ))}
+            {isAuthenticated ? (
+              <>
+                {navItems.map((item) => (
+                  <NavItem
+                    key={item.label}
+                    to={item.to}
+                    icon={item.icon}
+                    label={item.label}
+                    isActive={isPathActive(item.to)}
+                    onClick={() => setMobileMenuOpen(false)}
+                  />
+                ))}
+                <div className="py-2">
+                  <UserMenu />
+                </div>
+              </>
+            ) : (
+              <Link to="/sign-in" onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="outline" className="flex items-center gap-2 w-full justify-start">
+                  <LogIn className="h-4 w-4" />
+                  Sign In
+                </Button>
+              </Link>
+            )}
           </nav>
         </div>
       )}
