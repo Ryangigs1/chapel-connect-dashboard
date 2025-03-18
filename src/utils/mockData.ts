@@ -1,4 +1,3 @@
-
 import { 
   Student, 
   Attendance, 
@@ -11,18 +10,18 @@ import {
 } from "@/types";
 
 export const mockStudents: Student[] = [
-  { id: "1", name: "John Smith", grade: "11th", absences: 3, punishmentServed: true, lastAttendance: "2023-04-10" },
-  { id: "2", name: "Emily Johnson", grade: "10th", absences: 1, punishmentServed: false, lastAttendance: "2023-04-15" },
-  { id: "3", name: "Michael Brown", grade: "12th", absences: 5, punishmentServed: false, lastAttendance: "2023-04-05" },
-  { id: "4", name: "Jessica Davis", grade: "9th", absences: 0, punishmentServed: true, lastAttendance: "2023-04-17" },
-  { id: "5", name: "David Wilson", grade: "11th", absences: 2, punishmentServed: true, lastAttendance: "2023-04-12" },
-  { id: "6", name: "Sarah Martinez", grade: "10th", absences: 4, punishmentServed: false, lastAttendance: "2023-04-08" },
-  { id: "7", name: "Daniel Anderson", grade: "12th", absences: 1, punishmentServed: true, lastAttendance: "2023-04-14" },
-  { id: "8", name: "Olivia Thomas", grade: "9th", absences: 6, punishmentServed: false, lastAttendance: "2023-04-03" },
-  { id: "9", name: "James Taylor", grade: "11th", absences: 2, punishmentServed: true, lastAttendance: "2023-04-13" },
-  { id: "10", name: "Sophia White", grade: "10th", absences: 3, punishmentServed: false, lastAttendance: "2023-04-11" },
-  { id: "11", name: "Ethan Harris", grade: "12th", absences: 0, punishmentServed: true, lastAttendance: "2023-04-17" },
-  { id: "12", name: "Ava Clark", grade: "9th", absences: 5, punishmentServed: false, lastAttendance: "2023-04-06" },
+  { id: "1", name: "Oluwaseun Adegoke", grade: "300L", absences: 3, punishmentServed: true, lastAttendance: "2023-04-10" },
+  { id: "2", name: "Chidinma Okafor", grade: "200L", absences: 1, punishmentServed: false, lastAttendance: "2023-04-15" },
+  { id: "3", name: "Tunde Bakare", grade: "400L", absences: 5, punishmentServed: false, lastAttendance: "2023-04-05" },
+  { id: "4", name: "Amina Ibrahim", grade: "100L", absences: 0, punishmentServed: true, lastAttendance: "2023-04-17" },
+  { id: "5", name: "Emeka Okonkwo", grade: "300L", absences: 2, punishmentServed: true, lastAttendance: "2023-04-12" },
+  { id: "6", name: "Folake Adeleke", grade: "200L", absences: 4, punishmentServed: false, lastAttendance: "2023-04-08" },
+  { id: "7", name: "Olumide Johnson", grade: "400L", absences: 1, punishmentServed: true, lastAttendance: "2023-04-14" },
+  { id: "8", name: "Nkechi Eze", grade: "100L", absences: 6, punishmentServed: false, lastAttendance: "2023-04-03" },
+  { id: "9", name: "Yusuf Abubakar", grade: "300L", absences: 2, punishmentServed: true, lastAttendance: "2023-04-13" },
+  { id: "10", name: "Blessing Ogedengbe", grade: "200L", absences: 3, punishmentServed: false, lastAttendance: "2023-04-11" },
+  { id: "11", name: "Chinedu Okeke", grade: "400L", absences: 0, punishmentServed: true, lastAttendance: "2023-04-17" },
+  { id: "12", name: "Aminat Bello", grade: "100L", absences: 5, punishmentServed: false, lastAttendance: "2023-04-06" },
 ];
 
 export const mockAttendance: Attendance[] = [
@@ -71,28 +70,28 @@ export const mockEvents: ChapelEvent[] = [
     start: new Date(today.getTime() - oneDay * 2),
     end: new Date(today.getTime() - oneDay * 2 + 3600000),
     description: "Weekly chapel service with worship and message",
-    location: "Main Auditorium",
-    speaker: "Dr. James Wilson",
+    location: "MTU Main Auditorium",
+    speaker: "Dr. Samuel Oloyede",
     color: "#4f46e5"
   },
   {
     id: "2",
-    title: "Guest Speaker: David Thompson",
+    title: "Guest Speaker: Pastor D.K. Olukoya",
     start: new Date(today.getTime() + oneDay * 5),
     end: new Date(today.getTime() + oneDay * 5 + 3600000),
-    description: "Special chapel with guest speaker from Local Church",
-    location: "Main Auditorium",
-    speaker: "David Thompson",
+    description: "Special chapel with MFM General Overseer",
+    location: "MTU Main Auditorium",
+    speaker: "Pastor D.K. Olukoya",
     color: "#7c3aed"
   },
   {
     id: "3",
-    title: "Worship Night",
+    title: "Praise Night",
     start: new Date(today.getTime() + oneDay * 10),
     end: new Date(today.getTime() + oneDay * 10 + 7200000),
-    description: "Extended worship night with the chapel band",
-    location: "Prayer Chapel",
-    speaker: "Chapel Band",
+    description: "Extended worship night with the MTU chapel choir",
+    location: "Prayer City Chapel",
+    speaker: "MTU Chapel Choir",
     color: "#0ea5e9"
   },
   {
@@ -100,8 +99,8 @@ export const mockEvents: ChapelEvent[] = [
     title: "Student Testimonies",
     start: new Date(today.getTime() + oneDay * 3),
     end: new Date(today.getTime() + oneDay * 3 + 3600000),
-    description: "Students share testimonies and experiences",
-    location: "Main Auditorium",
+    description: "Students share testimonies and experiences from Prayer City",
+    location: "MTU Main Auditorium",
     speaker: "Various Students",
     color: "#10b981"
   },
@@ -111,21 +110,21 @@ export const mockMessages: Message[] = [
   {
     id: "1",
     sender: "Chaplain",
-    content: "Good morning! Just a reminder about our special chapel service tomorrow.",
+    content: "Good morning! Just a reminder about our special prayer service tomorrow at Prayer City.",
     timestamp: new Date(today.getTime() - oneDay * 1),
     read: true
   },
   {
     id: "2",
     sender: "You",
-    content: "Thank you for the reminder. Will there be any special arrangements?",
+    content: "Thank you for the reminder. Will there be transportation from campus?",
     timestamp: new Date(today.getTime() - oneDay * 1 + 3600000),
     read: true
   },
   {
     id: "3",
     sender: "Chaplain",
-    content: "Yes, we'll have our guest speaker arrive 30 minutes early. Could you help greet them?",
+    content: "Yes, buses will leave from the university gate at 7:30 AM. Please be punctual.",
     timestamp: new Date(today.getTime() - oneDay * 1 + 7200000),
     read: false
   },

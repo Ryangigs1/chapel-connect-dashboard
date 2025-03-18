@@ -29,16 +29,30 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const mockUsers: User[] = [
   {
     id: '1',
-    name: 'John Doe',
-    email: 'john@example.com',
+    name: 'Olabisi Ayodele',
+    email: 'olabisi@mtu.edu.ng',
     role: 'admin',
     profileImage: null,
   },
   {
     id: '2',
-    name: 'Jane Smith',
-    email: 'jane@example.com',
+    name: 'Chioma Okonkwo',
+    email: 'chioma@mtu.edu.ng',
     role: 'staff',
+    profileImage: null,
+  },
+  {
+    id: '3',
+    name: 'admin',
+    email: 'admin@mtu.edu.ng',
+    role: 'admin',
+    profileImage: null,
+  },
+  {
+    id: '4',
+    name: 'user',
+    email: 'user@mtu.edu.ng',
+    role: 'student',
     profileImage: null,
   },
 ];
@@ -163,6 +177,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       const user = await auth.signIn(email, password);
       setUser(user);
+      return user; // Return the user for additional handling if needed
     } catch (error) {
       console.error('Sign in error:', error);
       throw error;

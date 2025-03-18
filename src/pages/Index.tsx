@@ -30,10 +30,13 @@ const Index = () => {
         
         <div className="hidden md:block">
           <h1 className="text-3xl font-bold animate-fade-up">
-            Chapel Connect Dashboard
+            MTU Chapel Connect Dashboard
           </h1>
           <p className="text-muted-foreground animate-fade-up [animation-delay:100ms]">
             Welcome, {user?.name || 'User'}! Monitor attendance, manage events, and communicate with the chaplain
+          </p>
+          <p className="text-xs text-muted-foreground/70 mt-1 animate-fade-up [animation-delay:150ms]">
+            Mountain Top University - Prayer City, Ibafo, Ogun State
           </p>
         </div>
         

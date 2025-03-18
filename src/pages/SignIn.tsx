@@ -1,11 +1,11 @@
 
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { Eye, EyeOff, LockKeyhole, Mail } from 'lucide-react';
-import { auth } from '@/lib/auth';
+import { useAuth } from '@/lib/auth';
 
 const SignIn = () => {
   const [email, setEmail] = useState('');
@@ -14,6 +14,11 @@ const SignIn = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { signIn } = useAuth();
+
+  // Get the intended destination from location state, or default to home
+  const from = location.state?.from?.pathname || '/';
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,12 +33,13 @@ const SignIn = () => {
 
     try {
       setLoading(true);
-      await auth.signIn(email, password);
+      await signIn(email, password);
       toast({
         title: "Success",
         description: "You've been signed in successfully",
       });
-      navigate('/');
+      // Navigate to the home page after successful sign-in
+      navigate('/', { replace: true });
     } catch (error) {
       console.error("Sign in error:", error);
       toast({

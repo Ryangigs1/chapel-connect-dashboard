@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
@@ -72,8 +71,8 @@ const StudentList = ({ limit, filterAbsentees = false, className }: StudentListP
             </CardTitle>
             <CardDescription>
               {filterAbsentees 
-                ? 'Students who have missed chapel services' 
-                : 'Overview of student attendance records'}
+                ? 'Students who have missed chapel services at MTU' 
+                : 'Overview of Mountain Top University chapel attendance'}
             </CardDescription>
           </div>
           <div className="flex flex-col sm:flex-row gap-2">
@@ -97,14 +96,14 @@ const StudentList = ({ limit, filterAbsentees = false, className }: StudentListP
               }}
             >
               <SelectTrigger className="w-full sm:w-[150px]">
-                <SelectValue placeholder="Grade" />
+                <SelectValue placeholder="Level" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Grades</SelectItem>
-                <SelectItem value="9th">9th Grade</SelectItem>
-                <SelectItem value="10th">10th Grade</SelectItem>
-                <SelectItem value="11th">11th Grade</SelectItem>
-                <SelectItem value="12th">12th Grade</SelectItem>
+                <SelectItem value="all">All Levels</SelectItem>
+                <SelectItem value="100L">100 Level</SelectItem>
+                <SelectItem value="200L">200 Level</SelectItem>
+                <SelectItem value="300L">300 Level</SelectItem>
+                <SelectItem value="400L">400 Level</SelectItem>
               </SelectContent>
             </Select>
           </div>
