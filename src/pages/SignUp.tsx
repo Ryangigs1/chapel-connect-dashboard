@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
@@ -59,21 +59,28 @@ const SignUp = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md space-y-8 bg-card p-8 rounded-lg shadow-lg border">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-primary/5 to-secondary/5"></div>
+        <div className="absolute top-1/4 -left-10 w-40 h-40 rounded-full bg-primary/10 blur-3xl animate-pulse-subtle"></div>
+        <div className="absolute bottom-1/4 -right-10 w-40 h-40 rounded-full bg-primary/10 blur-3xl animate-pulse-subtle [animation-delay:1s]"></div>
+      </div>
+      
+      <div className="w-full max-w-md space-y-8 bg-card p-8 rounded-lg shadow-lg border animate-fade-up">
         <div className="text-center">
-          <div className="mx-auto h-12 w-12 rounded-lg bg-primary flex items-center justify-center text-white font-bold text-xl mb-4">
+          <div className="mx-auto h-12 w-12 rounded-lg bg-primary flex items-center justify-center text-white font-bold text-xl mb-4 animate-scale-in">
             C
           </div>
-          <h1 className="text-2xl font-bold">Create your account</h1>
-          <p className="text-muted-foreground mt-2">
+          <h1 className="text-2xl font-bold animate-fade-up [animation-delay:200ms]">Create your account</h1>
+          <p className="text-muted-foreground mt-2 animate-fade-up [animation-delay:300ms]">
             Sign up to access Chapel Connect
           </p>
         </div>
 
         <form onSubmit={handleSignUp} className="mt-8 space-y-6">
           <div className="space-y-4">
-            <div className="relative">
+            <div className="relative animate-fade-up [animation-delay:400ms]">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <User className="h-5 w-5 text-muted-foreground" />
               </div>
@@ -89,7 +96,7 @@ const SignUp = () => {
               />
             </div>
             
-            <div className="relative">
+            <div className="relative animate-fade-up [animation-delay:500ms]">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Mail className="h-5 w-5 text-muted-foreground" />
               </div>
@@ -105,7 +112,7 @@ const SignUp = () => {
               />
             </div>
             
-            <div className="relative">
+            <div className="relative animate-fade-up [animation-delay:600ms]">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <LockKeyhole className="h-5 w-5 text-muted-foreground" />
               </div>
@@ -132,7 +139,7 @@ const SignUp = () => {
               </button>
             </div>
             
-            <div className="relative">
+            <div className="relative animate-fade-up [animation-delay:700ms]">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <LockKeyhole className="h-5 w-5 text-muted-foreground" />
               </div>
@@ -160,20 +167,25 @@ const SignUp = () => {
             </div>
           </div>
 
-          <div className="text-sm">
-            <a href="/sign-in" className="text-primary hover:text-primary/80">
+          <div className="text-sm animate-fade-up [animation-delay:800ms]">
+            <Link to="/sign-in" className="text-primary hover:text-primary/80 transition-colors">
               Already have an account? Sign in
-            </a>
+            </Link>
           </div>
 
           <Button
             type="submit"
-            className="w-full"
+            className="w-full animate-fade-up [animation-delay:900ms]"
             disabled={loading}
           >
             {loading ? "Creating account..." : "Sign up"}
           </Button>
         </form>
+      </div>
+      
+      {/* Faratech.inc watermark */}
+      <div className="fixed bottom-4 right-4 text-sm text-muted-foreground/60 font-medium animate-fade-in [animation-delay:1s]">
+        Faratech.inc
       </div>
     </div>
   );

@@ -147,7 +147,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       } catch (error) {
         console.error('Error checking auth:', error);
       } finally {
-        setLoading(false);
+        // Add a slight delay to allow for animations
+        setTimeout(() => {
+          setLoading(false);
+        }, 500);
       }
     };
     

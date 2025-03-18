@@ -11,11 +11,17 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { isAuthenticated, loading } = useAuth();
   const location = useLocation();
 
-  // If still loading, you could show a loading spinner
+  // If still loading, show a loading spinner with animation
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
+      <div className="flex items-center justify-center h-screen bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          <p className="text-muted-foreground animate-pulse">Loading...</p>
+          <div className="fixed bottom-4 right-4 text-sm text-muted-foreground/60 font-medium">
+            Faratech.inc
+          </div>
+        </div>
       </div>
     );
   }
