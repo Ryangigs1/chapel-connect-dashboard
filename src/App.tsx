@@ -6,8 +6,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./lib/auth";
 import ProtectedRoute from "./components/ProtectedRoute";
-import AIChat from "./components/AIChat";
-import TextToSpeech from "./components/TextToSpeech";
 import Index from "./pages/Index";
 import Students from "./pages/Students";
 import Admin from "./pages/Admin";
@@ -46,12 +44,12 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/admin" element={
-              <ProtectedRoute>
+              <ProtectedRoute isAdmin={true}>
                 <Admin />
               </ProtectedRoute>
             } />
             <Route path="/admin/attendance/:attendanceId" element={
-              <ProtectedRoute>
+              <ProtectedRoute isAdmin={true}>
                 <Admin />
               </ProtectedRoute>
             } />
@@ -59,10 +57,6 @@ const App = () => (
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
-          
-          {/* Global components */}
-          <AIChat />
-          <TextToSpeech />
         </TooltipProvider>
       </AuthProvider>
     </BrowserRouter>

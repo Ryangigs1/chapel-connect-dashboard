@@ -1,6 +1,7 @@
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
+import { encryptData, decryptData, initSecurity } from '@/utils/encryption';
 
 export interface User {
   id: string;
@@ -8,18 +9,23 @@ export interface User {
   email: string;
   role: string;
   avatarUrl?: string;
+  adminToken?: string; // Encrypted admin token
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string, adminKey?: string) => Promise<void>;
   signUp: (email: string, password: string, name: string) => Promise<void>;
   signOut: () => Promise<void>;
   isAuthenticated: boolean;
+  verifyAdminAccess: (token: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// Admin verification key - In a real app, this would be on the server
+const ADMIN_SECRET_KEY = "MTU_ADMIN_SECRET_2023";
 
 // Mock users for demonstration
 const mockUsers = [
@@ -29,7 +35,8 @@ const mockUsers = [
     email: 'admin@mtu.edu.ng',
     password: 'password',
     role: 'admin',
-    avatarUrl: '/avatar1.png'
+    avatarUrl: '/avatar1.png',
+    adminToken: encryptData('admin_token_123') // Encrypted admin token
   },
   {
     id: '2',
@@ -45,13 +52,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Initialize security measures
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'production') {
+      initSecurity();
+    }
+  }, []);
+
   useEffect(() => {
     // Check if user is stored in localStorage
     const storedUser = localStorage.getItem('mtu_user');
     if (storedUser) {
       try {
-        const parsedUser = JSON.parse(storedUser);
-        setUser(parsedUser);
+        // Decrypt the stored user data
+        const encryptedData = storedUser;
+        const decryptedData = decryptData(encryptedData);
+        
+        if (decryptedData) {
+          setUser(decryptedData);
+        } else {
+          // Invalid stored user data, remove it
+          localStorage.removeItem('mtu_user');
+        }
       } catch (error) {
         // Invalid stored user data, remove it
         localStorage.removeItem('mtu_user');
@@ -60,8 +82,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setLoading(false);
   }, []);
   
-  // Sign in function - modified to return Promise<void> to match interface
-  const signIn = async (email: string, password: string): Promise<void> => {
+  // Verify admin access token
+  const verifyAdminAccess = (token: string): boolean => {
+    if (!user || user.role !== 'admin') return false;
+    
+    try {
+      // In a real app, this would be a server-side verification
+      return token === ADMIN_SECRET_KEY;
+    } catch (error) {
+      return false;
+    }
+  };
+  
+  // Sign in function - modified to support admin key
+  const signIn = async (email: string, password: string, adminKey?: string): Promise<void> => {
     // Simulate API request delay
     await new Promise(resolve => setTimeout(resolve, 1000));
     
@@ -77,11 +111,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       throw new Error('Invalid credentials');
     }
     
+    // Check admin key if user is an admin
+    if (foundUser.role === 'admin' && adminKey) {
+      if (adminKey !== ADMIN_SECRET_KEY) {
+        toast({
+          title: "Admin verification failed",
+          description: "Invalid admin key provided.",
+          variant: "destructive"
+        });
+        throw new Error('Invalid admin key');
+      }
+    }
+    
     // Create user object without password
     const { password: _, ...userWithoutPassword } = foundUser;
     
-    // Store user in localStorage
-    localStorage.setItem('mtu_user', JSON.stringify(userWithoutPassword));
+    // Encrypt and store user in localStorage
+    const encryptedUser = encryptData(userWithoutPassword);
+    localStorage.setItem('mtu_user', encryptedUser);
     
     // Update state
     setUser(userWithoutPassword);
@@ -123,8 +170,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Create user object without password
     const { password: _, ...userWithoutPassword } = newUser;
     
-    // Store user in localStorage
-    localStorage.setItem('mtu_user', JSON.stringify(userWithoutPassword));
+    // Encrypt and store user in localStorage
+    const encryptedUser = encryptData(userWithoutPassword);
+    localStorage.setItem('mtu_user', encryptedUser);
     
     // Update state
     setUser(userWithoutPassword);
@@ -156,6 +204,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     signUp,
     signOut,
     isAuthenticated: !!user,
+    verifyAdminAccess,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

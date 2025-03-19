@@ -2,13 +2,15 @@
 import { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
+import { decryptToken } from '@/utils/encryption';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
+  isAdmin?: boolean;
 }
 
-const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { isAuthenticated, loading } = useAuth();
+const ProtectedRoute = ({ children, isAdmin = false }: ProtectedRouteProps) => {
+  const { user, loading, isAuthenticated } = useAuth();
   const location = useLocation();
 
   // If still loading, show a loading spinner with animation
@@ -31,7 +33,13 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return <Navigate to="/sign-in" state={{ from: location }} replace />;
   }
 
-  // If authenticated, render the children
+  // For admin routes, check if user has admin role
+  if (isAdmin && user?.role !== 'admin') {
+    // User is authenticated but not an admin
+    return <Navigate to="/" replace />;
+  }
+
+  // If authenticated and passes admin check (if applicable), render the children
   return <>{children}</>;
 };
 

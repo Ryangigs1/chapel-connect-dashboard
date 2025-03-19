@@ -1,5 +1,6 @@
 
 import { ParsedCsvData } from './csvParser';
+import { encryptData, decryptData } from './encryption';
 
 // GitHub API configuration
 const GITHUB_TOKEN = 'your-github-token'; // In production, use env variables via Supabase
@@ -42,8 +43,11 @@ export const storeAttendanceData = async (
     // Convert data to JSON string
     const content = JSON.stringify(storageData, null, 2);
     
+    // Encrypt the content for additional security
+    const encryptedContent = encryptData(content);
+    
     // Convert content to base64 for GitHub API
-    const contentBase64 = btoa(unescape(encodeURIComponent(content)));
+    const contentBase64 = btoa(unescape(encodeURIComponent(encryptedContent)));
     
     // Create file in GitHub repository
     const response = await fetch(
@@ -121,7 +125,16 @@ export const getStoredAttendanceData = async (): Promise<StoredAttendanceData[]>
           return null;
         }
         
-        return await fileResponse.json() as StoredAttendanceData;
+        const encryptedContent = await fileResponse.text();
+        
+        // Decrypt the content
+        try {
+          const decryptedContent = decryptData(encryptedContent);
+          return JSON.parse(decryptedContent) as StoredAttendanceData;
+        } catch (error) {
+          console.error(`Failed to decrypt file: ${file.name}`, error);
+          return null;
+        }
       });
     
     const results = await Promise.all(dataPromises);
@@ -170,7 +183,16 @@ export const getAttendanceDataById = async (id: string): Promise<StoredAttendanc
       throw new Error(`Failed to fetch file content`);
     }
     
-    return await contentResponse.json() as StoredAttendanceData;
+    const encryptedContent = await contentResponse.text();
+    
+    // Decrypt the content
+    try {
+      const decryptedContent = decryptData(encryptedContent);
+      return JSON.parse(decryptedContent) as StoredAttendanceData;
+    } catch (error) {
+      console.error(`Failed to decrypt file: ${id}.json`, error);
+      return null;
+    }
   } catch (error) {
     console.error('Error retrieving data from GitHub:', error);
     throw new Error('Failed to retrieve attendance data from GitHub');

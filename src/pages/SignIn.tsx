@@ -1,15 +1,19 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
-import { Eye, EyeOff, LockKeyhole, Mail } from 'lucide-react';
+import { Eye, EyeOff, LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 
 const SignIn = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [adminKey, setAdminKey] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
@@ -25,7 +29,17 @@ const SignIn = () => {
     if (!email || !password) {
       toast({
         title: "Error",
-        description: "Please fill in all fields",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // If admin login is selected but no admin key is provided
+    if (isAdmin && !adminKey) {
+      toast({
+        title: "Error",
+        description: "Admin key is required for administrator login",
         variant: "destructive"
       });
       return;
@@ -33,13 +47,18 @@ const SignIn = () => {
 
     try {
       setLoading(true);
-      await signIn(email, password);
+      await signIn(email, password, isAdmin ? adminKey : undefined);
       toast({
         title: "Success",
         description: "You've been signed in successfully",
       });
-      // Navigate to the home page after successful sign-in
-      navigate('/', { replace: true });
+      
+      // Navigate to the appropriate page after successful sign-in
+      if (email.includes('admin')) {
+        navigate('/admin', { replace: true });
+      } else {
+        navigate('/', { replace: true });
+      }
     } catch (error) {
       console.error("Sign in error:", error);
       toast({
@@ -116,9 +135,37 @@ const SignIn = () => {
                 )}
               </button>
             </div>
+            
+            <div className="flex items-center space-x-2 animate-fade-up [animation-delay:600ms]">
+              <Checkbox 
+                id="admin-login"
+                checked={isAdmin}
+                onCheckedChange={(checked) => setIsAdmin(checked === true)}
+              />
+              <Label htmlFor="admin-login" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                Login as Administrator
+              </Label>
+            </div>
+            
+            {isAdmin && (
+              <div className="relative animate-fade-up [animation-delay:700ms]">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <ShieldCheck className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <Input
+                  id="adminKey"
+                  name="adminKey"
+                  type="password"
+                  placeholder="Admin Security Key"
+                  value={adminKey}
+                  onChange={(e) => setAdminKey(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            )}
           </div>
 
-          <div className="flex items-center justify-between animate-fade-up [animation-delay:600ms]">
+          <div className="flex items-center justify-between animate-fade-up [animation-delay:800ms]">
             <div className="text-sm">
               <Link to="/sign-up" className="text-primary hover:text-primary/80 transition-colors">
                 Don't have an account? Sign up
@@ -133,7 +180,7 @@ const SignIn = () => {
 
           <Button
             type="submit"
-            className="w-full animate-fade-up [animation-delay:700ms]"
+            className="w-full animate-fade-up [animation-delay:900ms]"
             disabled={loading}
           >
             {loading ? "Signing in..." : "Sign in"}
