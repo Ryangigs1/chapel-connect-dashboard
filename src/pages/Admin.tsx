@@ -1,7 +1,6 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Tab } from '@headlessui/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -15,10 +14,12 @@ import {
   ChevronLeft,
   UploadCloud,
   Database,
-  AlertCircle 
+  AlertCircle,
+  History
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import CsvUpload from '@/components/admin/CsvUpload';
+import AttendanceHistory from '@/components/admin/AttendanceHistory';
 import { mockStudents } from '@/utils/mockData';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
@@ -86,6 +87,9 @@ const Admin = () => {
     });
     
     toast.success(`Student data updated successfully`);
+    
+    // Switch to history tab to show the uploaded data
+    setActiveTab("history");
   };
 
   return (
@@ -117,10 +121,14 @@ const Admin = () => {
               </CardHeader>
               <CardContent className="pb-3">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                  <TabsList className="grid grid-cols-3 w-full mb-4">
+                  <TabsList className="grid grid-cols-4 w-full mb-4">
                     <TabsTrigger value="upload" className="text-xs">
                       <UploadCloud className="h-3 w-3 mr-1" />
                       Upload
+                    </TabsTrigger>
+                    <TabsTrigger value="history" className="text-xs">
+                      <History className="h-3 w-3 mr-1" />
+                      History
                     </TabsTrigger>
                     <TabsTrigger value="students" className="text-xs">
                       <Users className="h-3 w-3 mr-1" />
@@ -141,6 +149,14 @@ const Admin = () => {
                   >
                     <FileSpreadsheet className="h-4 w-4 mr-2" />
                     Upload CSV Data
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start" 
+                    onClick={() => setActiveTab("history")}
+                  >
+                    <History className="h-4 w-4 mr-2" />
+                    View Upload History
                   </Button>
                   <Button 
                     variant="outline" 
@@ -277,6 +293,10 @@ const Admin = () => {
                   </div>
                 </CardContent>
               </Card>
+            </TabsContent>
+            
+            <TabsContent value="history" className="mt-0 animate-fade-up [animation-delay:200ms]">
+              <AttendanceHistory />
             </TabsContent>
             
             <TabsContent value="students" className="mt-0 animate-fade-up [animation-delay:200ms]">

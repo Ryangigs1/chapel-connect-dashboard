@@ -6,8 +6,9 @@ import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { FileSpreadsheet, Upload, AlertCircle, CheckCircle, X } from 'lucide-react';
+import { FileSpreadsheet, Upload, AlertCircle, CheckCircle, X, Save } from 'lucide-react';
 import { parseCSV, convertToStudentFormat } from '@/utils/csvParser';
+import { storeAttendanceData } from '@/utils/githubStorage';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth';
 
@@ -21,6 +22,7 @@ const CsvUpload = ({ onDataUploaded }: CsvUploadProps) => {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [previewData, setPreviewData] = useState<any[] | null>(null);
+  const [saving, setSaving] = useState(false);
   const { user } = useAuth();
 
   // Check if user is admin
@@ -67,60 +69,73 @@ const CsvUpload = ({ onDataUploaded }: CsvUploadProps) => {
     reader.readAsText(selectedFile);
   };
 
-  const handleUpload = () => {
-    if (!file) return;
+  const handleUpload = async () => {
+    if (!file || !user) return;
     
     setUploading(true);
     setProgress(0);
+    setSaving(false);
     
     // Simulate progress
     const interval = setInterval(() => {
       setProgress(prev => {
-        if (prev >= 95) {
+        if (prev >= 90) {
           clearInterval(interval);
-          return 95;
+          return 90;
         }
         return prev + 5;
       });
     }, 100);
     
-    // Read and parse file
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      try {
-        const content = event.target?.result as string;
-        const { students } = parseCSV(content);
-        const formattedStudents = convertToStudentFormat({ students });
-        
-        // Simulate network request
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Complete the progress
-        setProgress(100);
-        
-        // Call the callback with the parsed data
-        onDataUploaded(formattedStudents);
-        
-        toast.success(`Successfully processed ${formattedStudents.length} student records`);
-        
-        // Reset after successful upload
-        setTimeout(() => {
-          setUploading(false);
-          setFile(null);
-          setPreviewData(null);
-          setProgress(0);
-        }, 1000);
-        
-      } catch (err) {
-        setError('Error processing CSV file');
+    try {
+      // Read and parse file
+      const reader = new FileReader();
+      const fileContent = await new Promise<string>((resolve, reject) => {
+        reader.onload = (event) => resolve(event.target?.result as string);
+        reader.onerror = reject;
+        reader.readAsText(file);
+      });
+      
+      const parsedData = parseCSV(fileContent);
+      const formattedStudents = convertToStudentFormat(parsedData);
+      
+      // Set upload progress to 95%
+      setProgress(95);
+      
+      // Now save to GitHub
+      setSaving(true);
+      
+      await storeAttendanceData(
+        parsedData,
+        file.name,
+        user.name
+      );
+      
+      // Complete the progress
+      setProgress(100);
+      
+      // Call the callback with the parsed data
+      onDataUploaded(formattedStudents);
+      
+      toast.success(`Successfully processed and stored ${formattedStudents.length} student records`);
+      
+      // Reset after successful upload
+      setTimeout(() => {
         setUploading(false);
-        console.error(err);
-      } finally {
-        clearInterval(interval);
-      }
-    };
-    
-    reader.readAsText(file);
+        setSaving(false);
+        setFile(null);
+        setPreviewData(null);
+        setProgress(0);
+      }, 1000);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Error processing CSV file';
+      setError(errorMessage);
+      toast.error(errorMessage);
+      setUploading(false);
+      setSaving(false);
+    } finally {
+      clearInterval(interval);
+    }
   };
 
   const handleCancel = () => {
@@ -185,7 +200,7 @@ const CsvUpload = ({ onDataUploaded }: CsvUploadProps) => {
             {uploading && (
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span>Uploading...</span>
+                  <span>{saving ? 'Saving to GitHub...' : 'Uploading...'}</span>
                   <span>{progress}%</span>
                 </div>
                 <Progress value={progress} className="h-2" />
@@ -248,6 +263,11 @@ const CsvUpload = ({ onDataUploaded }: CsvUploadProps) => {
             <>
               <CheckCircle className="h-4 w-4 mr-2" />
               Completed
+            </>
+          ) : saving ? (
+            <>
+              <Save className="h-4 w-4 mr-2 animate-pulse" />
+              Saving...
             </>
           ) : (
             <>

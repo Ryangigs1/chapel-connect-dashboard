@@ -50,6 +50,11 @@ const App = () => (
                 <Admin />
               </ProtectedRoute>
             } />
+            <Route path="/admin/attendance/:attendanceId" element={
+              <ProtectedRoute>
+                <Admin />
+              </ProtectedRoute>
+            } />
             
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
