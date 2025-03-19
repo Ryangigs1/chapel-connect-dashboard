@@ -60,7 +60,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setLoading(false);
   }, []);
   
-  // Sign in function - now returns void to match interface
+  // Sign in function - modified to return Promise<void> to match interface
   const signIn = async (email: string, password: string): Promise<void> => {
     // Simulate API request delay
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -114,6 +114,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       email,
       password,
       role: 'user',
+      avatarUrl: '/avatar-default.png', // Adding default avatar URL
     };
     
     // Add to mock users (this is just for demo)

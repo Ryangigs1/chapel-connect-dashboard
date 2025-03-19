@@ -1,11 +1,10 @@
-
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { Eye, EyeOff, LockKeyhole, Mail, User } from 'lucide-react';
-import { auth } from '@/lib/auth';
+import { useAuth } from '@/lib/auth';
 
 const SignUp = () => {
   const [name, setName] = useState('');
@@ -16,6 +15,7 @@ const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { signUp } = useAuth();
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +40,7 @@ const SignUp = () => {
 
     try {
       setLoading(true);
-      await auth.signUp(email, password, name);
+      await signUp(email, password, name);
       toast({
         title: "Account created",
         description: "You've been signed up successfully",
@@ -60,7 +60,6 @@ const SignUp = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4 relative overflow-hidden">
-      {/* Animated background elements */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-primary/5 to-secondary/5"></div>
         <div className="absolute top-1/4 -left-10 w-40 h-40 rounded-full bg-primary/10 blur-3xl animate-pulse-subtle"></div>
@@ -183,7 +182,6 @@ const SignUp = () => {
         </form>
       </div>
       
-      {/* Faratech.inc watermark */}
       <div className="fixed bottom-4 right-4 text-sm text-muted-foreground/60 font-medium animate-fade-in [animation-delay:1s]">
         Faratech.inc
       </div>
