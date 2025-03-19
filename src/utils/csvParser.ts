@@ -5,6 +5,7 @@
 
 export interface ParsedCsvData {
   students: {
+    id: string; // Added id property to fix the error
     matricNumber: string;
     name: string;
     level: string;
