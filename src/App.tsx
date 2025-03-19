@@ -6,8 +6,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./lib/auth";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AIChat from "./components/AIChat";
+import TextToSpeech from "./components/TextToSpeech";
 import Index from "./pages/Index";
 import Students from "./pages/Students";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
@@ -42,10 +45,19 @@ const App = () => (
                 <Students />
               </ProtectedRoute>
             } />
+            <Route path="/admin" element={
+              <ProtectedRoute>
+                <Admin />
+              </ProtectedRoute>
+            } />
             
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          
+          {/* Global components */}
+          <AIChat />
+          <TextToSpeech />
         </TooltipProvider>
       </AuthProvider>
     </BrowserRouter>
