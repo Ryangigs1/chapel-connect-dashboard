@@ -49,16 +49,24 @@ const Navbar = () => {
   const { isAuthenticated } = useAuth();
   
   const isPathActive = (path: string) => {
-    return location.pathname === path;
+    if (path === '/') {
+      return location.pathname === path;
+    }
+    return location.pathname.startsWith(path);
   };
 
+  // Make sure we only show links to valid routes that exist in App.tsx
   const navItems = [
     { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/students', icon: Users, label: 'Students' },
-    { to: '/calendar', icon: Calendar, label: 'Calendar' },
-    { to: '/messages', icon: MessageSquare, label: 'Messages' },
-    { to: '/settings', icon: Settings, label: 'Settings' },
+    { to: '/admin', icon: Settings, label: 'Admin', adminOnly: true },
   ];
+
+  // Filter out admin routes for non-admin users
+  const { user } = useAuth();
+  const filteredNavItems = navItems.filter(item => 
+    !item.adminOnly || (user && user.role === 'admin')
+  );
 
   return (
     <header className="sticky top-0 z-40 w-full backdrop-blur-lg bg-background/80 border-b">
@@ -76,7 +84,7 @@ const Navbar = () => {
         <nav className="hidden md:flex items-center gap-6">
           {isAuthenticated ? (
             <>
-              {navItems.map((item) => (
+              {filteredNavItems.map((item) => (
                 <NavItem
                   key={item.label}
                   to={item.to}
@@ -114,7 +122,7 @@ const Navbar = () => {
           <nav className="flex flex-col space-y-1">
             {isAuthenticated ? (
               <>
-                {navItems.map((item) => (
+                {filteredNavItems.map((item) => (
                   <NavItem
                     key={item.label}
                     to={item.to}

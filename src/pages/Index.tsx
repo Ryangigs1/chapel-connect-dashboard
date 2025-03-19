@@ -41,7 +41,7 @@ const Index = () => {
         </div>
         
         <Tabs defaultValue="dashboard" value={activeTab} onValueChange={setActiveTab} className="animate-fade-up [animation-delay:200ms]">
-          <TabsList className="grid w-full grid-cols-4 mb-6">
+          <TabsList className="grid w-full grid-cols-3 mb-6">
             <TabsTrigger value="dashboard" className="flex items-center gap-2 transition-all duration-300">
               <LayoutDashboard className="h-4 w-4" />
               <span className="hidden sm:inline">Dashboard</span>
@@ -53,10 +53,6 @@ const Index = () => {
             <TabsTrigger value="calendar" className="flex items-center gap-2 transition-all duration-300">
               <CalendarIcon className="h-4 w-4" />
               <span className="hidden sm:inline">Calendar</span>
-            </TabsTrigger>
-            <TabsTrigger value="messages" className="flex items-center gap-2 transition-all duration-300">
-              <MessageSquare className="h-4 w-4" />
-              <span className="hidden sm:inline">Messages</span>
             </TabsTrigger>
           </TabsList>
           
@@ -80,12 +76,6 @@ const Index = () => {
           
           <TabsContent value="calendar" className="animate-scale-in">
             <Calendar />
-          </TabsContent>
-          
-          <TabsContent value="messages" className="animate-scale-in">
-            <div className="mx-auto max-w-2xl">
-              <ChatBox />
-            </div>
           </TabsContent>
         </Tabs>
       </main>

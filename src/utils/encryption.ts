@@ -76,77 +76,9 @@ export const decryptToken = (encryptedToken: string): string | null => {
   }
 };
 
-/**
- * Obfuscates the browser console to prevent easy inspection
- * This adds a basic layer of security, but determined attackers can still bypass it
- */
-export const obfuscateConsole = (): void => {
-  if (typeof window !== 'undefined') {
-    // Override console methods with encrypted versions
-    const originalConsole = { ...console };
-    
-    // Store original methods
-    window._originalConsole = originalConsole;
-    
-    // Replace console methods
-    console.log = function(...args: any[]) {
-      const encrypted = encryptData(args.join(' '));
-      originalConsole.log('%c[ENCRYPTED]', 'color: red', encrypted);
-    };
-    
-    console.error = function(...args: any[]) {
-      const encrypted = encryptData(args.join(' '));
-      originalConsole.error('%c[ENCRYPTED]', 'color: red', encrypted);
-    };
-    
-    console.warn = function(...args: any[]) {
-      const encrypted = encryptData(args.join(' '));
-      originalConsole.warn('%c[ENCRYPTED]', 'color: red', encrypted);
-    };
-    
-    console.info = function(...args: any[]) {
-      const encrypted = encryptData(args.join(' '));
-      originalConsole.info('%c[ENCRYPTED]', 'color: red', encrypted);
-    };
-    
-    // Add anti-debugging measures
-    setInterval(() => {
-      const devToolsOpen = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor)
-        ? window.outerHeight - window.innerHeight > 100 || window.outerWidth - window.innerWidth > 100
-        : false;
-      
-      if (devToolsOpen) {
-        document.body.innerHTML = encryptData('<div>Access Denied</div>');
-      }
-    }, 1000);
-    
-    // Prevent easy access to React DevTools
-    if (window.__REACT_DEVTOOLS_GLOBAL_HOOK__) {
-      window.__REACT_DEVTOOLS_GLOBAL_HOOK__.inject = function() {};
-    }
-  }
-};
-
-// Initialize obfuscation
+// Simplified security initialization
 export const initSecurity = (): void => {
-  obfuscateConsole();
-  
-  // Add event listener to detect right-clicks (context menu)
-  document.addEventListener('contextmenu', (e) => {
-    e.preventDefault();
-    return false;
-  });
-  
-  // Disable viewing source
-  document.onkeydown = function(e) {
-    // Disable F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
-    if (
-      e.keyCode === 123 || // F12
-      (e.ctrlKey && e.shiftKey && e.keyCode === 73) || // Ctrl+Shift+I
-      (e.ctrlKey && e.shiftKey && e.keyCode === 74) || // Ctrl+Shift+J
-      (e.ctrlKey && e.keyCode === 85) // Ctrl+U
-    ) {
-      return false;
-    }
-  };
+  // Only implementing basic security measures
+  // No UI obfuscation to ensure regular users can see the site normally
+  console.log("Basic security measures initialized");
 };
