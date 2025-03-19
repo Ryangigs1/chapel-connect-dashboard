@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { 
@@ -6,7 +5,8 @@ import {
   CardContent, 
   CardDescription, 
   CardHeader, 
-  CardTitle 
+  CardTitle,
+  CardFooter
 } from '@/components/ui/card';
 import { 
   Tabs, 
@@ -24,10 +24,15 @@ import {
   FileWarning, 
   Info, 
   User, 
-  XCircle 
+  XCircle,
+  BookOpen,
+  GraduationCap,
+  AlertCircle
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import StudentList from '@/components/StudentList';
+import LevelStudents from '@/components/LevelStudents';
+import AttendanceStats from '@/components/AttendanceStats';
 import { 
   getStudentById, 
   getPunishmentsByStudentId, 
@@ -39,6 +44,7 @@ import { cn } from '@/lib/utils';
 const Students = () => {
   const { studentId } = useParams();
   const student = studentId ? getStudentById(studentId) : null;
+  const [activeLevel, setActiveLevel] = useState('all');
   
   if (student) {
     return <StudentDetail student={student} />;
@@ -54,9 +60,87 @@ const Students = () => {
           <p className="text-muted-foreground animate-fade-up [animation-delay:100ms]">
             Manage and track student chapel attendance
           </p>
+          <p className="text-xs text-muted-foreground/70 mt-1 animate-fade-up [animation-delay:150ms]">
+            Mountain Top University - Prayer City, Ibafo, Ogun State
+          </p>
         </div>
         
-        <StudentList className="animate-fade-up [animation-delay:200ms]" />
+        <Card className="shadow-none border border-gray-200 bg-white/80 backdrop-blur-sm rounded-xl animate-fade-up [animation-delay:200ms]">
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <GraduationCap className="h-5 w-5 text-primary" />
+                  Academic Levels
+                </CardTitle>
+                <CardDescription>
+                  Select a level to view student attendance data
+                </CardDescription>
+              </div>
+              <AttendanceStats />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue={activeLevel} onValueChange={setActiveLevel} className="w-full">
+              <TabsList className="grid grid-cols-5 w-full mb-6 p-1 bg-gray-100/70 rounded-lg">
+                <TabsTrigger 
+                  value="all" 
+                  className="py-3 rounded-md data-[state=active]:shadow-[0_4px_10px_rgba(0,0,0,0.06)] data-[state=active]:text-primary data-[state=active]:font-medium transition-all duration-300"
+                >
+                  All Levels
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="100L" 
+                  className="py-3 rounded-md data-[state=active]:shadow-[0_4px_10px_rgba(0,0,0,0.06)] data-[state=active]:text-primary data-[state=active]:font-medium transition-all duration-300"
+                >
+                  100 Level
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="200L" 
+                  className="py-3 rounded-md data-[state=active]:shadow-[0_4px_10px_rgba(0,0,0,0.06)] data-[state=active]:text-primary data-[state=active]:font-medium transition-all duration-300"
+                >
+                  200 Level
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="300L" 
+                  className="py-3 rounded-md data-[state=active]:shadow-[0_4px_10px_rgba(0,0,0,0.06)] data-[state=active]:text-primary data-[state=active]:font-medium transition-all duration-300"
+                >
+                  300 Level
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="400L" 
+                  className="py-3 rounded-md data-[state=active]:shadow-[0_4px_10px_rgba(0,0,0,0.06)] data-[state=active]:text-primary data-[state=active]:font-medium transition-all duration-300"
+                >
+                  400 Level
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="all" className="animate-fade-up">
+                <StudentList className="animate-fade-up" />
+              </TabsContent>
+              
+              <TabsContent value="100L" className="animate-fade-up">
+                <LevelStudents level="100L" />
+              </TabsContent>
+              
+              <TabsContent value="200L" className="animate-fade-up">
+                <LevelStudents level="200L" />
+              </TabsContent>
+              
+              <TabsContent value="300L" className="animate-fade-up">
+                <LevelStudents level="300L" />
+              </TabsContent>
+              
+              <TabsContent value="400L" className="animate-fade-up">
+                <LevelStudents level="400L" />
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+        
+        <div className="fixed bottom-4 right-4 text-sm text-muted-foreground/60 font-medium z-10">
+          Faratech.inc
+        </div>
       </main>
     </div>
   );

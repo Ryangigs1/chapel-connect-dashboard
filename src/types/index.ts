@@ -1,4 +1,3 @@
-
 export interface Student {
   id: string;
   name: string;
@@ -6,6 +5,7 @@ export interface Student {
   absences: number;
   punishmentServed: boolean;
   lastAttendance: string;
+  matricNumber?: string;
 }
 
 export interface Attendance {

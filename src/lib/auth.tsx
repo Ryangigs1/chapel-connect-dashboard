@@ -1,15 +1,13 @@
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/components/ui/use-toast';
+import { createContext, useContext, useState, useEffect } from 'react';
+import { toast } from '@/components/ui/use-toast';
 
-// Mock user type - this would typically come from your API
 export interface User {
   id: string;
   name: string;
   email: string;
-  profileImage?: string | null;
-  role: 'student' | 'staff' | 'admin';
+  role: string;
+  avatarUrl?: string;
 }
 
 interface AuthContextType {
@@ -21,203 +19,133 @@ interface AuthContextType {
   isAuthenticated: boolean;
 }
 
-// Create the auth context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// This is a mock auth implementation
-// In a real app, this would be replaced with actual API calls
-const mockUsers: User[] = [
+// Mock users for demonstration
+const mockUsers = [
   {
     id: '1',
-    name: 'Olabisi Ayodele',
-    email: 'olabisi@mtu.edu.ng',
+    name: 'Dr. Adebayo Oladele',
+    email: 'admin@mtu.edu.ng',
+    password: 'password',
     role: 'admin',
-    profileImage: null,
+    avatarUrl: '/avatar1.png'
   },
   {
     id: '2',
-    name: 'Chioma Okonkwo',
-    email: 'chioma@mtu.edu.ng',
-    role: 'staff',
-    profileImage: null,
-  },
-  {
-    id: '3',
-    name: 'admin',
-    email: 'admin@mtu.edu.ng',
-    role: 'admin',
-    profileImage: null,
-  },
-  {
-    id: '4',
-    name: 'user',
-    email: 'user@mtu.edu.ng',
-    role: 'student',
-    profileImage: null,
-  },
+    name: 'Chaplain Emmanuel',
+    email: 'chaplain@mtu.edu.ng',
+    password: 'password',
+    role: 'chaplain',
+    avatarUrl: '/avatar2.png'
+  }
 ];
 
-const AUTH_STORAGE_KEY = 'chapel_connect_auth';
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
-// Helper functions to handle local storage
-const saveToLocalStorage = (user: User) => {
-  localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
-};
-
-const clearLocalStorage = () => {
-  localStorage.removeItem(AUTH_STORAGE_KEY);
-};
-
-const getFromLocalStorage = (): User | null => {
-  const stored = localStorage.getItem(AUTH_STORAGE_KEY);
-  if (!stored) return null;
-  try {
-    return JSON.parse(stored) as User;
-  } catch (error) {
-    console.error('Error parsing auth data:', error);
-    return null;
-  }
-};
-
-// Create a mock auth service
-export const auth = {
-  // Sign in with email and password
-  signIn: async (email: string, password: string): Promise<User> => {
+  useEffect(() => {
+    // Check if user is stored in localStorage
+    const storedUser = localStorage.getItem('mtu_user');
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+      } catch (error) {
+        // Invalid stored user data, remove it
+        localStorage.removeItem('mtu_user');
+      }
+    }
+    setLoading(false);
+  }, []);
+  
+  // Sign in function - now returns void to match interface
+  const signIn = async (email: string, password: string): Promise<void> => {
     // Simulate API request delay
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    // Find user with matching email
-    const user = mockUsers.find(u => u.email === email);
+    // Find user by email
+    const foundUser = mockUsers.find(u => u.email === email);
     
-    if (!user) {
+    if (!foundUser || foundUser.password !== password) {
+      toast({
+        title: "Authentication failed",
+        description: "Invalid email or password.",
+        variant: "destructive"
+      });
       throw new Error('Invalid credentials');
     }
     
-    // In a real app, you would verify the password here
-    // This is just a mock implementation
+    // Create user object without password
+    const { password: _, ...userWithoutPassword } = foundUser;
     
-    // Save to local storage
-    saveToLocalStorage(user);
+    // Store user in localStorage
+    localStorage.setItem('mtu_user', JSON.stringify(userWithoutPassword));
     
-    return user;
-  },
+    // Update state
+    setUser(userWithoutPassword);
+    
+    toast({
+      title: "Welcome back!",
+      description: `Signed in as ${userWithoutPassword.name}`,
+    });
+  };
   
-  // Sign up a new user
-  signUp: async (email: string, password: string, name: string): Promise<User> => {
+  // Sign up function
+  const signUp = async (email: string, password: string, name: string): Promise<void> => {
     // Simulate API request delay
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    // Check if email is already in use
+    // Check if user already exists
     if (mockUsers.some(u => u.email === email)) {
+      toast({
+        title: "Registration failed",
+        description: "Email already in use.",
+        variant: "destructive"
+      });
       throw new Error('Email already in use');
     }
     
-    // Create a new user
-    const newUser: User = {
+    // Create new user
+    const newUser = {
       id: `${mockUsers.length + 1}`,
       name,
       email,
-      role: 'student',
-      profileImage: null,
+      password,
+      role: 'user',
     };
     
-    // In a real app, you would store this in a database
+    // Add to mock users (this is just for demo)
     mockUsers.push(newUser);
     
-    // Save to local storage
-    saveToLocalStorage(newUser);
+    // Create user object without password
+    const { password: _, ...userWithoutPassword } = newUser;
     
-    return newUser;
-  },
-  
-  // Sign out the current user
-  signOut: async (): Promise<void> => {
-    // Simulate API request delay
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Store user in localStorage
+    localStorage.setItem('mtu_user', JSON.stringify(userWithoutPassword));
     
-    // Clear from local storage
-    clearLocalStorage();
-  },
-  
-  // Get the current user
-  getCurrentUser: (): User | null => {
-    return getFromLocalStorage();
-  },
-};
-
-// Create the auth provider component
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
-  const navigate = useNavigate();
-
-  // Check for existing session on mount
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const currentUser = auth.getCurrentUser();
-        setUser(currentUser);
-      } catch (error) {
-        console.error('Error checking auth:', error);
-      } finally {
-        // Add a slight delay to allow for animations
-        setTimeout(() => {
-          setLoading(false);
-        }, 500);
-      }
-    };
+    // Update state
+    setUser(userWithoutPassword);
     
-    checkAuth();
-  }, []);
-
-  // Sign in function
-  const signIn = async (email: string, password: string) => {
-    try {
-      setLoading(true);
-      const user = await auth.signIn(email, password);
-      setUser(user);
-      return user; // Return the user for additional handling if needed
-    } catch (error) {
-      console.error('Sign in error:', error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
+    toast({
+      title: "Registration successful",
+      description: `Welcome, ${name}!`,
+    });
   };
-
-  // Sign up function
-  const signUp = async (email: string, password: string, name: string) => {
-    try {
-      setLoading(true);
-      const user = await auth.signUp(email, password, name);
-      setUser(user);
-    } catch (error) {
-      console.error('Sign up error:', error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  
   // Sign out function
-  const signOut = async () => {
-    try {
-      await auth.signOut();
-      setUser(null);
-      toast({
-        title: "Signed out",
-        description: "You've been signed out successfully",
-      });
-      navigate('/sign-in');
-    } catch (error) {
-      console.error('Sign out error:', error);
-      toast({
-        title: "Error signing out",
-        description: "There was a problem signing out. Please try again.",
-        variant: "destructive"
-      });
-    }
+  const signOut = async (): Promise<void> => {
+    // Remove user from localStorage
+    localStorage.removeItem('mtu_user');
+    
+    // Update state
+    setUser(null);
+    
+    toast({
+      title: "Signed out",
+      description: "You have been signed out successfully.",
+    });
   };
 
   const value = {
@@ -232,7 +160,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-// Create a hook to use the auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
