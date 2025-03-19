@@ -9,6 +9,17 @@
 // CryptoJS is a popular library for encryption in JavaScript
 import CryptoJS from 'crypto-js';
 
+// Extend the Window interface to include our custom properties
+declare global {
+  interface Window {
+    _originalConsole: typeof console;
+    __REACT_DEVTOOLS_GLOBAL_HOOK__?: {
+      inject: Function;
+      [key: string]: any;
+    };
+  }
+}
+
 // We'll use a secret key that is not directly accessible from the client side
 // In a real application, this would be securely stored on the server
 const SECRET_KEY = 'MTU_CHAPEL_SECURE_KEY_2023';
