@@ -59,6 +59,9 @@ const Admin = () => {
     );
   }
   
+  // Debug log to check user role
+  console.log('Admin page rendered with user:', user);
+  
   // Handle data updates from CSV upload
   const handleDataUploaded = (data: any[]) => {
     // Update the students data
