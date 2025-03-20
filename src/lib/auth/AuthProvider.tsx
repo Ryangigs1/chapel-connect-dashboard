@@ -16,6 +16,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
   // Initialize security measures
   useEffect(() => {
@@ -29,8 +30,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const storedUser = getUserFromLocalStorage();
     if (storedUser) {
       setUser(storedUser);
+      // Show welcome back message
+      const lastVisit = localStorage.getItem('mtu_last_visit');
+      const now = new Date().toISOString();
+      
+      if (lastVisit) {
+        const lastDate = new Date(lastVisit);
+        const today = new Date();
+        
+        // If last visit was not today
+        if (lastDate.toDateString() !== today.toDateString()) {
+          setTimeout(() => {
+            showSuccessToast("Welcome back!", `Good to see you again, ${storedUser.name}!`);
+          }, 1000);
+        }
+      }
+      
+      localStorage.setItem('mtu_last_visit', now);
     }
     setLoading(false);
+    
+    // Set a timeout to show we're done with initial load
+    setTimeout(() => {
+      setInitialLoadComplete(true);
+    }, 300);
   }, []);
   
   // Sign in function - modified to support admin key
@@ -66,6 +89,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     
     // Update state
     setUser(userWithoutPassword);
+    
+    // Store last visit time
+    localStorage.setItem('mtu_last_visit', new Date().toISOString());
     
     showSuccessToast("Welcome back!", `Signed in as ${userWithoutPassword.name}`);
   };
@@ -103,6 +129,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Update state
     setUser(userWithoutPassword);
     
+    // Store last visit time
+    localStorage.setItem('mtu_last_visit', new Date().toISOString());
+    
     showSuccessToast("Registration successful", `Welcome, ${name}!`);
   };
   
@@ -127,7 +156,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     verifyAdminAccess: (token: string) => verifyAdminAccess(user, token),
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <div className={`transition-opacity duration-500 ${initialLoadComplete ? 'opacity-100' : 'opacity-0'}`}>
+      <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+    </div>
+  );
 };
 
 export const useAuth = () => {

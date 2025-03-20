@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./lib/auth";
+import { useAuth } from "./lib/auth";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Index from "./pages/Index";
 import Students from "./pages/Students";
@@ -15,6 +16,17 @@ import SignUp from "./pages/SignUp";
 import AdminSignIn from "./pages/AdminSignIn";
 
 const queryClient = new QueryClient();
+
+// Root component to check authentication state
+const Root = () => {
+  const { isAuthenticated, loading } = useAuth();
+  
+  // If still loading auth state, show nothing (the ProtectedRoute will handle loading UI)
+  if (loading) return null;
+  
+  // If not authenticated, redirect to sign-in
+  return isAuthenticated ? <Index /> : <Navigate to="/sign-in" replace />;
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -29,8 +41,11 @@ const App = () => (
             <Route path="/sign-up" element={<SignUp />} />
             <Route path="/admin/login" element={<AdminSignIn />} />
             
+            {/* Root route - checks auth and redirects appropriately */}
+            <Route path="/" element={<Root />} />
+            
             {/* Protected routes */}
-            <Route path="/" element={
+            <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Index />
               </ProtectedRoute>

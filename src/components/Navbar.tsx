@@ -11,7 +11,8 @@ import {
   Settings,
   Users,
   X,
-  LogIn
+  LogIn,
+  Sparkles
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
@@ -49,15 +50,15 @@ const Navbar = () => {
   const { isAuthenticated } = useAuth();
   
   const isPathActive = (path: string) => {
-    if (path === '/') {
-      return location.pathname === path;
+    if (path === '/dashboard') {
+      return location.pathname === '/' || location.pathname === '/dashboard';
     }
     return location.pathname.startsWith(path);
   };
 
   // Make sure we only show links to valid routes that exist in App.tsx
   const navItems = [
-    { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/students', icon: Users, label: 'Students' },
     { to: '/admin', icon: Settings, label: 'Admin', adminOnly: true },
   ];
@@ -72,8 +73,9 @@ const Navbar = () => {
     <header className="sticky top-0 z-40 w-full backdrop-blur-lg bg-background/80 border-b">
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-2">
-          <Link to="/" className="flex items-center gap-2">
+          <Link to={isAuthenticated ? "/dashboard" : "/sign-in"} className="flex items-center gap-2">
             <div className="relative h-8 w-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold">
+              <Sparkles className="h-4 w-4 absolute -top-1 -right-1 text-yellow-300" />
               C
             </div>
             <span className="font-semibold text-lg">Chapel Connect</span>
