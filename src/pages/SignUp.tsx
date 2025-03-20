@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -43,9 +44,10 @@ const SignUp = () => {
       await signUp(email, password, name);
       toast({
         title: "Account created",
-        description: "You've been signed up successfully",
+        description: "You've been signed up successfully. Please sign in.",
       });
-      navigate('/');
+      // Redirect to sign-in page instead of home
+      navigate('/sign-in');
     } catch (error) {
       console.error("Sign up error:", error);
       toast({

@@ -10,6 +10,7 @@ import { ChapelEvent } from '@/types';
 import EventForm from './EventForm';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { getEvents, storeEvents, addEvent, updateEvent } from '@/utils/eventStorage';
 
 interface CalendarProps {
   className?: string;
@@ -19,11 +20,30 @@ const Calendar = ({ className }: CalendarProps) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedEvent, setSelectedEvent] = useState<ChapelEvent | null>(null);
   const [showEventForm, setShowEventForm] = useState(false);
-  const [events, setEvents] = useState<ChapelEvent[]>(mockEvents);
+  const [events, setEvents] = useState<ChapelEvent[]>([]);
   const [draggedEvent, setDraggedEvent] = useState<ChapelEvent | null>(null);
   const [draggingOver, setDraggingOver] = useState<string | null>(null);
   
   const calendarRef = useRef<HTMLDivElement>(null);
+
+  // Load events from storage on component mount
+  useEffect(() => {
+    const storedEvents = getEvents();
+    
+    // If no stored events, use mock events as initial data
+    if (storedEvents.length === 0) {
+      setEvents(mockEvents);
+      storeEvents(mockEvents);
+    } else {
+      // Convert date strings back to Date objects for stored events
+      const eventsWithDates = storedEvents.map(event => ({
+        ...event,
+        start: new Date(event.start),
+        end: new Date(event.end)
+      }));
+      setEvents(eventsWithDates);
+    }
+  }, []);
 
   const startDate = startOfWeek(currentDate, { weekStartsOn: 0 });
   const endDate = endOfWeek(currentDate, { weekStartsOn: 0 });
@@ -52,13 +72,15 @@ const Calendar = ({ className }: CalendarProps) => {
   };
 
   const handleSaveEvent = (eventData: ChapelEvent) => {
+    let updatedEvents;
+    
     if (selectedEvent) {
       // Update existing event
-      setEvents(prevEvents => 
-        prevEvents.map(event => 
-          event.id === selectedEvent.id ? { ...event, ...eventData } : event
-        )
+      updatedEvents = events.map(event => 
+        event.id === selectedEvent.id ? { ...event, ...eventData } : event
       );
+      setEvents(updatedEvents);
+      storeEvents(updatedEvents);
       toast.success('Event updated successfully');
     } else {
       // Add new event
@@ -66,9 +88,13 @@ const Calendar = ({ className }: CalendarProps) => {
         ...eventData,
         id: Math.random().toString(36).substr(2, 9),
       };
-      setEvents(prevEvents => [...prevEvents, newEvent]);
+      
+      updatedEvents = [...events, newEvent];
+      setEvents(updatedEvents);
+      storeEvents(updatedEvents);
       toast.success('Event created successfully');
     }
+    
     setShowEventForm(false);
   };
 
@@ -119,11 +145,12 @@ const Calendar = ({ className }: CalendarProps) => {
     };
     
     // Update the events array
-    setEvents(prevEvents => 
-      prevEvents.map(event => 
-        event.id === draggedEvent.id ? updatedEvent : event
-      )
+    const updatedEvents = events.map(evt => 
+      evt.id === draggedEvent.id ? updatedEvent : evt
     );
+    
+    setEvents(updatedEvents);
+    storeEvents(updatedEvents);
     
     setDraggedEvent(null);
     setDraggingOver(null);
@@ -134,7 +161,7 @@ const Calendar = ({ className }: CalendarProps) => {
   // Get events for a specific day
   const getEventsForDay = (date: Date) => {
     return events.filter(event => 
-      isSameDay(event.start, date)
+      isSameDay(new Date(event.start), date)
     );
   };
 

@@ -46,12 +46,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       throw new Error('Invalid credentials');
     }
     
-    // Check admin key if user is an admin
+    // If user is admin and adminKey is provided, verify it
     if (foundUser.role === 'admin' && adminKey) {
       if (adminKey !== ADMIN_SECRET_KEY) {
         showErrorToast("Admin verification failed", "Invalid admin key provided.");
         throw new Error('Invalid admin key');
       }
+    } else if (foundUser.role === 'admin' && !adminKey) {
+      // If user is admin but no admin key provided
+      showErrorToast("Admin verification failed", "Admin key required for administrator access.");
+      throw new Error('Admin key required');
     }
     
     // Create user object without password

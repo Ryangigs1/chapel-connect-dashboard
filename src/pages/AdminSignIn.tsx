@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { Eye, EyeOff, LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
+import { ADMIN_SECRET_KEY } from '@/lib/auth/mockUsers';
 
 const AdminSignIn = () => {
   const [email, setEmail] = useState('');
@@ -17,6 +18,13 @@ const AdminSignIn = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { signIn } = useAuth();
+
+  // For development purposes - showing the admin credentials in console
+  console.log("Admin credentials for testing:", {
+    email: "admin@mtu.edu.ng",
+    password: "password",
+    adminKey: ADMIN_SECRET_KEY
+  });
 
   const handleAdminSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,6 +49,7 @@ const AdminSignIn = () => {
           description: "This is not an administrator account",
           variant: "destructive"
         });
+        setLoading(false);
         return;
       }
       
