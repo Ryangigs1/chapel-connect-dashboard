@@ -1,31 +1,29 @@
 
 import { useState } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
-import { Eye, EyeOff, LockKeyhole, Mail } from 'lucide-react';
+import { Eye, EyeOff, LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 
-const SignIn = () => {
+const AdminSignIn = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [adminKey, setAdminKey] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showAdminKey, setShowAdminKey] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const location = useLocation();
   const { signIn } = useAuth();
 
-  // Get the intended destination from location state, or default to home
-  const from = location.state?.from?.pathname || '/';
-
-  const handleSignIn = async (e: React.FormEvent) => {
+  const handleAdminSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
+    if (!email || !password || !adminKey) {
       toast({
         title: "Error",
-        description: "Please fill in all required fields",
+        description: "Please fill in all required fields including the Admin Security Key",
         variant: "destructive"
       });
       return;
@@ -33,19 +31,31 @@ const SignIn = () => {
 
     try {
       setLoading(true);
-      await signIn(email, password);
+      // Pass adminKey to signIn method for verification
+      await signIn(email, password, adminKey);
+      
+      // Check if email contains admin to verify it's an admin account
+      if (!email.includes('admin')) {
+        toast({
+          title: "Access Denied",
+          description: "This is not an administrator account",
+          variant: "destructive"
+        });
+        return;
+      }
+      
       toast({
-        title: "Success",
-        description: "You've been signed in successfully",
+        title: "Admin Access Granted",
+        description: "Welcome to the admin panel",
       });
       
-      // Navigate to the home page after successful sign-in
-      navigate('/', { replace: true });
+      // Navigate to the admin dashboard after successful sign-in
+      navigate('/admin', { replace: true });
     } catch (error) {
-      console.error("Sign in error:", error);
+      console.error("Admin sign in error:", error);
       toast({
-        title: "Error signing in",
-        description: "Please check your credentials and try again",
+        title: "Authentication Failed",
+        description: "Invalid credentials or admin key",
         variant: "destructive"
       });
     } finally {
@@ -65,15 +75,15 @@ const SignIn = () => {
       <div className="w-full max-w-md space-y-8 bg-card p-8 rounded-lg shadow-lg border animate-fade-up">
         <div className="text-center">
           <div className="mx-auto h-12 w-12 rounded-lg bg-primary flex items-center justify-center text-white font-bold text-xl mb-4 animate-scale-in">
-            C
+            A
           </div>
-          <h1 className="text-2xl font-bold animate-fade-up [animation-delay:200ms]">Sign in to Chapel Connect</h1>
+          <h1 className="text-2xl font-bold animate-fade-up [animation-delay:200ms]">Administrator Access</h1>
           <p className="text-muted-foreground mt-2 animate-fade-up [animation-delay:300ms]">
-            Enter your credentials to access your account
+            Secure login for system administrators
           </p>
         </div>
 
-        <form onSubmit={handleSignIn} className="mt-8 space-y-6">
+        <form onSubmit={handleAdminSignIn} className="mt-8 space-y-6">
           <div className="space-y-4">
             <div className="relative animate-fade-up [animation-delay:400ms]">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -83,7 +93,7 @@ const SignIn = () => {
                 id="email"
                 name="email"
                 type="email"
-                placeholder="Email address"
+                placeholder="Admin Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="pl-10"
@@ -117,33 +127,47 @@ const SignIn = () => {
                 )}
               </button>
             </div>
+            
+            <div className="relative animate-fade-up [animation-delay:600ms]">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <ShieldCheck className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <Input
+                id="adminKey"
+                name="adminKey"
+                type={showAdminKey ? "text" : "password"}
+                placeholder="Admin Security Key"
+                value={adminKey}
+                onChange={(e) => setAdminKey(e.target.value)}
+                className="pl-10 pr-10"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowAdminKey(!showAdminKey)}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              >
+                {showAdminKey ? (
+                  <EyeOff className="h-5 w-5 text-muted-foreground" />
+                ) : (
+                  <Eye className="h-5 w-5 text-muted-foreground" />
+                )}
+              </button>
+            </div>
           </div>
 
-          <div className="flex items-center justify-between animate-fade-up [animation-delay:800ms]">
-            <div className="text-sm">
-              <Link to="/sign-up" className="text-primary hover:text-primary/80 transition-colors">
-                Don't have an account? Sign up
-              </Link>
-            </div>
-            <div className="text-sm">
-              <a href="#" className="text-primary hover:text-primary/80 transition-colors">
-                Forgot password?
-              </a>
-            </div>
-          </div>
-          
           <div className="flex flex-col space-y-4">
             <Button
               type="submit"
-              className="w-full animate-fade-up [animation-delay:900ms]"
+              className="w-full animate-fade-up [animation-delay:700ms]"
               disabled={loading}
             >
-              {loading ? "Signing in..." : "Sign in"}
+              {loading ? "Verifying..." : "Access Admin Panel"}
             </Button>
             
             <div className="text-center text-sm">
-              <Link to="/admin/login" className="text-primary hover:text-primary/80 transition-colors">
-                Administrator Login
+              <Link to="/sign-in" className="text-primary hover:text-primary/80 transition-colors">
+                Return to regular login
               </Link>
             </div>
           </div>
@@ -158,4 +182,4 @@ const SignIn = () => {
   );
 };
 
-export default SignIn;
+export default AdminSignIn;
