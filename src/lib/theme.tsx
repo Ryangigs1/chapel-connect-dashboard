@@ -35,6 +35,21 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   }, [theme]);
 
+  useEffect(() => {
+    // Listen for system theme changes
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e: MediaQueryListEvent) => {
+      const systemTheme = e.matches ? "dark" : "light";
+      // Only update theme if user hasn't manually set it
+      if (!localStorage.getItem("mtu_theme")) {
+        setTheme(systemTheme);
+      }
+    };
+    
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
   const toggleTheme = () => {
     setTheme(prevTheme => prevTheme === "light" ? "dark" : "light");
   };

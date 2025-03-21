@@ -1,5 +1,5 @@
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Card, 
@@ -16,6 +16,9 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { Clock } from '@/components/Clock';
+import { PasswordChangeDialog } from '@/components/PasswordChangeDialog';
+import { TwoFactorDialog } from '@/components/TwoFactorDialog';
 import { 
   ChevronLeft, 
   User, 
@@ -28,15 +31,17 @@ import {
   Save,
   XCircle,
   Upload,
-  Camera
+  Camera,
+  Download
 } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import Navbar from '@/components/Navbar';
 import { useAuth } from '@/lib/auth';
 import { useTheme } from '@/lib/theme';
 import { mockStudents } from '@/utils/mockData';
 import { encryptData, decryptData } from '@/utils/encryption';
+import { exportUserDataToCsv } from '@/utils/exportUserData';
+import { initEventNotifications } from '@/utils/eventNotification';
 
 const UserProfile = () => {
   const { user } = useAuth();
@@ -45,8 +50,10 @@ const UserProfile = () => {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  // Find user in mock data
-  const mockUser = mockStudents.find(s => s.matricNumber === (user?.id || ''));
+  // Find user in mock data using id not matricNumber
+  const mockUser = user?.role === 'student' ? 
+    mockStudents.find(s => s.matricNumber === (user?.id || '')) : 
+    null;
   
   // Try to get user data from localStorage first
   const getUserFromStorage = () => {
@@ -87,6 +94,12 @@ const UserProfile = () => {
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  
+  // Initialize event notifications
+  useEffect(() => {
+    const cleanupNotifications = initEventNotifications();
+    return () => cleanupNotifications();
+  }, []);
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -248,26 +261,58 @@ const UserProfile = () => {
     
     reader.readAsDataURL(file);
   };
+
+  const handleDownloadData = () => {
+    // Prepare data for export
+    const userData = {
+      name: formData.name,
+      email: formData.email,
+      role: user?.role || 'student',
+      department: formData.department,
+      level: formData.level,
+      phone: formData.phone,
+      address: formData.address,
+      emergencyContact: formData.emergencyContact,
+      lastLogin: new Date().toISOString(),
+      attendancePercentage: mockUser ? Math.round(((24 - (mockUser.absences || 0)) / 24) * 100) : 0,
+      totalServices: 24,
+      absences: mockUser?.absences || 0
+    };
+    
+    exportUserDataToCsv(userData);
+    
+    toast({
+      title: "Data downloaded",
+      description: "Your profile data has been exported to CSV"
+    });
+  };
+  
+  // Show different content based on user role
+  const isStudent = user?.role === 'student' || user?.role === 'user';
   
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       
       <main className="flex-1 container py-6 space-y-6">
-        <div className="flex items-center gap-2">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => navigate('/dashboard')}
-            className="flex items-center gap-1"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            Back to Dashboard
-          </Button>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => navigate('/dashboard')}
+              className="flex items-center gap-1"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Back to Dashboard
+            </Button>
+            
+            <h1 className="text-2xl font-bold animate-fade-up text-foreground">
+              My Profile
+            </h1>
+          </div>
           
-          <h1 className="text-2xl font-bold animate-fade-up">
-            My Profile
-          </h1>
+          <Clock />
         </div>
         
         <div className="grid md:grid-cols-3 gap-6">
@@ -283,7 +328,7 @@ const UserProfile = () => {
                   </Avatar>
                   
                   <div 
-                    className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                    className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer avatar-upload-overlay"
                     onClick={() => fileInputRef.current?.click()}
                   >
                     <div className="bg-black/50 rounded-full h-8 w-8 flex items-center justify-center">
@@ -300,13 +345,15 @@ const UserProfile = () => {
                   </div>
                 </div>
                 
-                <h2 className="text-xl font-bold mb-1">{user?.name}</h2>
-                <p className="text-muted-foreground mb-4">{mockUser?.matricNumber}</p>
+                <h2 className="text-xl font-bold mb-1 text-foreground">{user?.name}</h2>
+                <p className="text-muted-foreground mb-4">
+                  {isStudent ? mockUser?.matricNumber : user?.role}
+                </p>
                 
                 <div className="w-full space-y-2">
                   <Button 
                     variant="outline" 
-                    className="w-full" 
+                    className="w-full text-foreground" 
                     size="sm"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploadingAvatar}
@@ -361,35 +408,39 @@ const UserProfile = () => {
               
               <CardContent className="pt-4">
                 <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Level</p>
-                      <p className="font-medium">{mockUser?.grade}</p>
+                  {isStudent && (
+                    <div className="flex items-center gap-3">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Level</p>
+                        <p className="font-medium text-foreground">{mockUser?.grade}</p>
+                      </div>
                     </div>
-                  </div>
+                  )}
                   
                   <div className="flex items-center gap-3">
                     <Mail className="h-4 w-4 text-muted-foreground" />
                     <div>
                       <p className="text-sm text-muted-foreground">Email</p>
-                      <p className="font-medium">{user?.email}</p>
+                      <p className="font-medium text-foreground">{user?.email}</p>
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-3">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Department</p>
-                      <p className="font-medium">Computer Science</p>
+                  {isStudent && (
+                    <div className="flex items-center gap-3">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Department</p>
+                        <p className="font-medium text-foreground">Computer Science</p>
+                      </div>
                     </div>
-                  </div>
+                  )}
                   
                   <div className="flex items-center gap-3">
                     <Shield className="h-4 w-4 text-muted-foreground" />
                     <div>
                       <p className="text-sm text-muted-foreground">Account Type</p>
-                      <p className="font-medium capitalize">{user?.role}</p>
+                      <p className="font-medium text-foreground capitalize">{user?.role}</p>
                     </div>
                   </div>
                 </div>
@@ -398,18 +449,14 @@ const UserProfile = () => {
             
             <Card className="bg-card">
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg flex items-center">
+                <CardTitle className="text-lg flex items-center text-foreground">
                   <Lock className="h-4 w-4 mr-2 text-primary" />
                   Security
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <Button variant="outline" size="sm" className="w-full">
-                  Change Password
-                </Button>
-                <Button variant="outline" size="sm" className="w-full">
-                  Two-Factor Authentication
-                </Button>
+                <PasswordChangeDialog />
+                <TwoFactorDialog />
               </CardContent>
             </Card>
           </div>
@@ -417,15 +464,17 @@ const UserProfile = () => {
           <div className="md:col-span-2 space-y-6">
             <Tabs defaultValue="profile" className="w-full">
               <TabsList className="w-full grid grid-cols-3">
-                <TabsTrigger value="profile">Profile Info</TabsTrigger>
-                <TabsTrigger value="chapel">Chapel Record</TabsTrigger>
-                <TabsTrigger value="settings">Account Settings</TabsTrigger>
+                <TabsTrigger value="profile" className="text-foreground">Profile Info</TabsTrigger>
+                {isStudent && (
+                  <TabsTrigger value="chapel" className="text-foreground">Chapel Record</TabsTrigger>
+                )}
+                <TabsTrigger value="settings" className="text-foreground">Account Settings</TabsTrigger>
               </TabsList>
               
               <TabsContent value="profile" className="space-y-6 mt-6">
                 <Card className="bg-card">
                   <CardHeader>
-                    <CardTitle>Personal Information</CardTitle>
+                    <CardTitle className="text-foreground">Personal Information</CardTitle>
                     <CardDescription>
                       Update your personal details
                     </CardDescription>
@@ -433,18 +482,19 @@ const UserProfile = () => {
                   <CardContent className="space-y-4">
                     <div className="grid md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="name">Full Name</Label>
+                        <Label htmlFor="name" className="text-foreground">Full Name</Label>
                         <Input 
                           id="name" 
                           name="name" 
                           value={formData.name} 
                           onChange={handleInputChange}
                           disabled={!editing}
+                          className="text-foreground"
                         />
                       </div>
                       
                       <div className="space-y-2">
-                        <Label htmlFor="email">Email Address</Label>
+                        <Label htmlFor="email" className="text-foreground">Email Address</Label>
                         <Input 
                           id="email" 
                           name="email" 
@@ -452,83 +502,99 @@ const UserProfile = () => {
                           value={formData.email} 
                           onChange={handleInputChange}
                           disabled={!editing}
+                          className="text-foreground"
                         />
                       </div>
                       
                       <div className="space-y-2">
-                        <Label htmlFor="phone">Phone Number</Label>
+                        <Label htmlFor="phone" className="text-foreground">Phone Number</Label>
                         <Input 
                           id="phone" 
                           name="phone" 
                           value={formData.phone} 
                           onChange={handleInputChange}
                           disabled={!editing}
+                          className="text-foreground"
                         />
                       </div>
                       
-                      <div className="space-y-2">
-                        <Label htmlFor="level">Level</Label>
-                        <Input 
-                          id="level" 
-                          name="level" 
-                          value={formData.level} 
-                          onChange={handleInputChange}
-                          disabled={true}
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="department">Department</Label>
-                        <Input 
-                          id="department" 
-                          name="department" 
-                          value={formData.department} 
-                          onChange={handleInputChange}
-                          disabled={true}
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="matricNumber">Matric Number</Label>
-                        <Input 
-                          id="matricNumber" 
-                          name="matricNumber" 
-                          value={mockUser?.matricNumber || ''} 
-                          disabled={true}
-                        />
-                      </div>
+                      {isStudent && (
+                        <>
+                          <div className="space-y-2">
+                            <Label htmlFor="level" className="text-foreground">Level</Label>
+                            <Input 
+                              id="level" 
+                              name="level" 
+                              value={formData.level} 
+                              onChange={handleInputChange}
+                              disabled={true}
+                              className="text-foreground"
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor="department" className="text-foreground">Department</Label>
+                            <Input 
+                              id="department" 
+                              name="department" 
+                              value={formData.department} 
+                              onChange={handleInputChange}
+                              disabled={true}
+                              className="text-foreground"
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor="matricNumber" className="text-foreground">Matric Number</Label>
+                            <Input 
+                              id="matricNumber" 
+                              name="matricNumber" 
+                              value={mockUser?.matricNumber || ''} 
+                              disabled={true}
+                              className="text-foreground"
+                            />
+                          </div>
+                        </>
+                      )}
                     </div>
                     
-                    <div className="space-y-2">
-                      <Label htmlFor="address">Hostel Address</Label>
-                      <Input 
-                        id="address" 
-                        name="address" 
-                        value={formData.address} 
-                        onChange={handleInputChange}
-                        disabled={!editing}
-                      />
-                    </div>
+                    {isStudent && (
+                      <>
+                        <div className="space-y-2">
+                          <Label htmlFor="address" className="text-foreground">Hostel Address</Label>
+                          <Input 
+                            id="address" 
+                            name="address" 
+                            value={formData.address} 
+                            onChange={handleInputChange}
+                            disabled={!editing}
+                            className="text-foreground"
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="emergencyContact" className="text-foreground">Emergency Contact</Label>
+                          <Input 
+                            id="emergencyContact" 
+                            name="emergencyContact" 
+                            value={formData.emergencyContact} 
+                            onChange={handleInputChange}
+                            disabled={!editing}
+                            className="text-foreground"
+                          />
+                        </div>
+                      </>
+                    )}
                     
                     <div className="space-y-2">
-                      <Label htmlFor="emergencyContact">Emergency Contact</Label>
-                      <Input 
-                        id="emergencyContact" 
-                        name="emergencyContact" 
-                        value={formData.emergencyContact} 
-                        onChange={handleInputChange}
-                        disabled={!editing}
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="bio">Bio</Label>
+                      <Label htmlFor="bio" className="text-foreground">Bio</Label>
                       <Input 
                         id="bio" 
                         name="bio" 
                         value={formData.bio} 
                         onChange={handleInputChange}
                         disabled={!editing}
+                        className="text-foreground"
                       />
                     </div>
                   </CardContent>
@@ -538,6 +604,7 @@ const UserProfile = () => {
                         <Button 
                           variant="outline" 
                           onClick={handleCancel}
+                          className="text-foreground"
                         >
                           Cancel
                         </Button>
@@ -554,112 +621,114 @@ const UserProfile = () => {
                 </Card>
               </TabsContent>
               
-              <TabsContent value="chapel" className="space-y-6 mt-6">
-                <Card className="bg-card">
-                  <CardHeader>
-                    <CardTitle>Chapel Attendance Record</CardTitle>
-                    <CardDescription>
-                      Your chapel attendance summary
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-6">
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <Card className="bg-card shadow-sm">
-                          <CardContent className="p-4">
-                            <div className="text-sm text-muted-foreground mb-1">Total Services</div>
-                            <div className="text-2xl font-bold">24</div>
-                          </CardContent>
-                        </Card>
+              {isStudent && (
+                <TabsContent value="chapel" className="space-y-6 mt-6">
+                  <Card className="bg-card">
+                    <CardHeader>
+                      <CardTitle className="text-foreground">Chapel Attendance Record</CardTitle>
+                      <CardDescription>
+                        Your chapel attendance summary
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-6">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          <Card className="bg-card shadow-sm">
+                            <CardContent className="p-4">
+                              <div className="text-sm text-muted-foreground mb-1">Total Services</div>
+                              <div className="text-2xl font-bold text-foreground">24</div>
+                            </CardContent>
+                          </Card>
+                          
+                          <Card className="bg-card shadow-sm">
+                            <CardContent className="p-4">
+                              <div className="text-sm text-muted-foreground mb-1">Attended</div>
+                              <div className="text-2xl font-bold text-foreground">
+                                {24 - (mockUser?.absences || 0)}
+                              </div>
+                            </CardContent>
+                          </Card>
+                          
+                          <Card className="bg-card shadow-sm">
+                            <CardContent className="p-4">
+                              <div className="text-sm text-muted-foreground mb-1">Absences</div>
+                              <div className="text-2xl font-bold text-red-500">
+                                {mockUser?.absences || 0}
+                              </div>
+                            </CardContent>
+                          </Card>
+                          
+                          <Card className="bg-card shadow-sm">
+                            <CardContent className="p-4">
+                              <div className="text-sm text-muted-foreground mb-1">Percentage</div>
+                              <div className="text-2xl font-bold text-foreground">
+                                {Math.round(((24 - (mockUser?.absences || 0)) / 24) * 100)}%
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </div>
                         
                         <Card className="bg-card shadow-sm">
-                          <CardContent className="p-4">
-                            <div className="text-sm text-muted-foreground mb-1">Attended</div>
-                            <div className="text-2xl font-bold">
-                              {24 - (mockUser?.absences || 0)}
-                            </div>
-                          </CardContent>
-                        </Card>
-                        
-                        <Card className="bg-card shadow-sm">
-                          <CardContent className="p-4">
-                            <div className="text-sm text-muted-foreground mb-1">Absences</div>
-                            <div className="text-2xl font-bold text-red-500">
-                              {mockUser?.absences || 0}
-                            </div>
-                          </CardContent>
-                        </Card>
-                        
-                        <Card className="bg-card shadow-sm">
-                          <CardContent className="p-4">
-                            <div className="text-sm text-muted-foreground mb-1">Percentage</div>
-                            <div className="text-2xl font-bold">
-                              {Math.round(((24 - (mockUser?.absences || 0)) / 24) * 100)}%
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-lg text-foreground">Recent Attendance</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-4">
+                              {[...Array(5)].map((_, i) => {
+                                const date = new Date();
+                                date.setDate(date.getDate() - i * 3);
+                                const attended = i !== 1;
+                                
+                                return (
+                                  <div key={i} className="flex justify-between items-center py-2 border-b">
+                                    <div>
+                                      <p className="font-medium text-foreground">
+                                        {i === 0 ? 'Sunday Service' : 
+                                         i === 1 ? 'Morning Prayer' : 
+                                         i === 2 ? 'Evening Service' : 
+                                         i === 3 ? 'Bible Study' : 'Sunday Service'}
+                                      </p>
+                                      <p className="text-sm text-muted-foreground">
+                                        {date.toLocaleDateString()} • {
+                                          i === 0 ? '9:00 AM' : 
+                                          i === 1 ? '6:00 AM' : 
+                                          i === 2 ? '6:30 PM' : 
+                                          i === 3 ? '4:00 PM' : '9:00 AM'
+                                        }
+                                      </p>
+                                    </div>
+                                    <div className={`px-2 py-1 rounded text-sm ${
+                                      attended ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' : 
+                                                'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+                                    }`}>
+                                      {attended ? 'Present' : 'Absent'}
+                                    </div>
+                                  </div>
+                                );
+                              })}
                             </div>
                           </CardContent>
                         </Card>
                       </div>
-                      
-                      <Card className="bg-card shadow-sm">
-                        <CardHeader className="pb-2">
-                          <CardTitle className="text-lg">Recent Attendance</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-4">
-                            {[...Array(5)].map((_, i) => {
-                              const date = new Date();
-                              date.setDate(date.getDate() - i * 3);
-                              const attended = i !== 1;
-                              
-                              return (
-                                <div key={i} className="flex justify-between items-center py-2 border-b">
-                                  <div>
-                                    <p className="font-medium">
-                                      {i === 0 ? 'Sunday Service' : 
-                                       i === 1 ? 'Morning Prayer' : 
-                                       i === 2 ? 'Evening Service' : 
-                                       i === 3 ? 'Bible Study' : 'Sunday Service'}
-                                    </p>
-                                    <p className="text-sm text-muted-foreground">
-                                      {date.toLocaleDateString()} • {
-                                        i === 0 ? '9:00 AM' : 
-                                        i === 1 ? '6:00 AM' : 
-                                        i === 2 ? '6:30 PM' : 
-                                        i === 3 ? '4:00 PM' : '9:00 AM'
-                                      }
-                                    </p>
-                                  </div>
-                                  <div className={`px-2 py-1 rounded text-sm ${
-                                    attended ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' : 
-                                              'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
-                                  }`}>
-                                    {attended ? 'Present' : 'Absent'}
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              )}
               
               <TabsContent value="settings" className="space-y-6 mt-6">
                 <Card className="bg-card">
                   <CardHeader>
-                    <CardTitle>Account Settings</CardTitle>
+                    <CardTitle className="text-foreground">Account Settings</CardTitle>
                     <CardDescription>
                       Manage your account preferences
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="space-y-4">
-                      <h3 className="font-medium">Theme & Appearance</h3>
+                      <h3 className="font-medium text-foreground">Theme & Appearance</h3>
                       <div className="flex items-center justify-between py-2 border-b">
                         <div>
-                          <p className="text-sm font-medium">Theme</p>
+                          <p className="text-sm font-medium text-foreground">Theme</p>
                           <p className="text-xs text-muted-foreground">Switch between light and dark mode</p>
                         </div>
                         <ThemeToggle />
@@ -667,11 +736,11 @@ const UserProfile = () => {
                     </div>
                     
                     <div className="space-y-2">
-                      <h3 className="font-medium">Email Notifications</h3>
+                      <h3 className="font-medium text-foreground">Email Notifications</h3>
                       <div className="space-y-2">
                         <div className="flex items-center justify-between py-2 border-b">
                           <div>
-                            <p className="text-sm font-medium">Chapel Announcements</p>
+                            <p className="text-sm font-medium text-foreground">Chapel Announcements</p>
                             <p className="text-xs text-muted-foreground">Get notified about upcoming events and news</p>
                           </div>
                           <Switch 
@@ -682,7 +751,7 @@ const UserProfile = () => {
                         </div>
                         <div className="flex items-center justify-between py-2 border-b">
                           <div>
-                            <p className="text-sm font-medium">Service Reminders</p>
+                            <p className="text-sm font-medium text-foreground">Service Reminders</p>
                             <p className="text-xs text-muted-foreground">Receive reminders before chapel services</p>
                           </div>
                           <Switch 
@@ -693,7 +762,7 @@ const UserProfile = () => {
                         </div>
                         <div className="flex items-center justify-between py-2 border-b">
                           <div>
-                            <p className="text-sm font-medium">Absence Alerts</p>
+                            <p className="text-sm font-medium text-foreground">Absence Alerts</p>
                             <p className="text-xs text-muted-foreground">Get notified when you're marked absent</p>
                           </div>
                           <Switch 
@@ -706,11 +775,11 @@ const UserProfile = () => {
                     </div>
                     
                     <div className="space-y-2">
-                      <h3 className="font-medium">Privacy Settings</h3>
+                      <h3 className="font-medium text-foreground">Privacy Settings</h3>
                       <div className="space-y-2">
                         <div className="flex items-center justify-between py-2 border-b">
                           <div>
-                            <p className="text-sm font-medium">Show profile in student directory</p>
+                            <p className="text-sm font-medium text-foreground">Show profile in student directory</p>
                             <p className="text-xs text-muted-foreground">Make your profile visible to other students</p>
                           </div>
                           <Switch 
@@ -721,7 +790,7 @@ const UserProfile = () => {
                         </div>
                         <div className="flex items-center justify-between py-2 border-b">
                           <div>
-                            <p className="text-sm font-medium">Allow chaplain to contact me</p>
+                            <p className="text-sm font-medium text-foreground">Allow chaplain to contact me</p>
                             <p className="text-xs text-muted-foreground">Allow chapel staff to contact you directly</p>
                           </div>
                           <Switch 
@@ -734,8 +803,14 @@ const UserProfile = () => {
                     </div>
                     
                     <div className="space-y-2">
-                      <h3 className="font-medium">Account Actions</h3>
-                      <Button variant="outline" className="w-full" size="sm">
+                      <h3 className="font-medium text-foreground">Account Actions</h3>
+                      <Button 
+                        variant="outline" 
+                        className="w-full text-foreground" 
+                        size="sm"
+                        onClick={handleDownloadData}
+                      >
+                        <Download className="h-4 w-4 mr-2" />
                         Download My Data
                       </Button>
                       <Button variant="destructive" className="w-full" size="sm">

@@ -15,7 +15,21 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Settings, LogOut, User, HelpCircle, Moon, Sun, LifeBuoy, Bookmark, Image } from 'lucide-react';
+import { 
+  Settings, 
+  LogOut, 
+  User, 
+  HelpCircle, 
+  Moon, 
+  Sun, 
+  LifeBuoy, 
+  Bookmark, 
+  Image, 
+  Calendar, 
+  BookOpen, 
+  Users, 
+  Bell
+} from 'lucide-react';
 import { useTheme } from '@/lib/theme';
 import { ThemeToggle } from './ThemeToggle';
 
@@ -61,7 +75,7 @@ const UserMenu = () => {
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user?.name}</p>
+            <p className="text-sm font-medium leading-none text-foreground">{user?.name}</p>
             <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
           </div>
         </DropdownMenuLabel>
@@ -78,10 +92,29 @@ const UserMenu = () => {
           <span>Dashboard</span>
         </DropdownMenuItem>
         
+        <DropdownMenuItem className="cursor-pointer" onClick={() => navigateTo('/events')}>
+          <Calendar className="mr-2 h-4 w-4" />
+          <span>Events</span>
+        </DropdownMenuItem>
+        
         <DropdownMenuItem className="cursor-pointer" onClick={() => navigateTo('/gallery')}>
           <Image className="mr-2 h-4 w-4" />
           <span>Gallery</span>
         </DropdownMenuItem>
+        
+        {user?.role === 'admin' && (
+          <DropdownMenuItem className="cursor-pointer" onClick={() => navigateTo('/admin')}>
+            <Users className="mr-2 h-4 w-4" />
+            <span>Admin Panel</span>
+          </DropdownMenuItem>
+        )}
+        
+        <DropdownMenuItem className="cursor-pointer" onClick={() => navigateTo('/index')}>
+          <BookOpen className="mr-2 h-4 w-4" />
+          <span>Attendance</span>
+        </DropdownMenuItem>
+        
+        <DropdownMenuSeparator />
         
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
@@ -90,19 +123,20 @@ const UserMenu = () => {
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
             <DropdownMenuItem>
-              <span>Theme</span>
+              <span className="mr-2">Theme</span>
               <ThemeToggle />
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => navigateTo('/profile')}>
               <span>Account</span>
             </DropdownMenuItem>
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigateTo('/profile')}>
+              <Bell className="mr-2 h-4 w-4" />
               <span>Notifications</span>
             </DropdownMenuItem>
           </DropdownMenuSubContent>
         </DropdownMenuSub>
         
-        <DropdownMenuItem className="cursor-pointer">
+        <DropdownMenuItem className="cursor-pointer" onClick={() => window.open('https://chapelapp.vercel.app/help', '_blank')}>
           <HelpCircle className="mr-2 h-4 w-4" />
           <span>Help & Support</span>
         </DropdownMenuItem>
