@@ -64,7 +64,9 @@ const AttendanceHistory = () => {
                 name: `Student ${i + 1}`,
                 matricNumber: `MTU/2023/${1000 + i}`,
                 level: '200L',
-                absences: Math.floor(Math.random() * 5)
+                absences: Math.floor(Math.random() * 5),
+                lastAttendance: new Date().toISOString().split('T')[0], // Add missing lastAttendance
+                punishmentServed: Math.random() > 0.5 // Add missing punishmentServed
               }))
             }
           },
@@ -79,7 +81,9 @@ const AttendanceHistory = () => {
                 name: `Student ${i + 1}`,
                 matricNumber: `MTU/2023/${1000 + i}`,
                 level: '300L',
-                absences: Math.floor(Math.random() * 5)
+                absences: Math.floor(Math.random() * 5),
+                lastAttendance: new Date().toISOString().split('T')[0], // Add missing lastAttendance
+                punishmentServed: Math.random() > 0.5 // Add missing punishmentServed
               }))
             }
           }
@@ -102,7 +106,9 @@ const AttendanceHistory = () => {
               name: `Student ${i + 1}`,
               matricNumber: `MTU/2023/${1000 + i}`,
               level: '200L',
-              absences: Math.floor(Math.random() * 5)
+              absences: Math.floor(Math.random() * 5),
+              lastAttendance: new Date().toISOString().split('T')[0], // Add missing lastAttendance
+              punishmentServed: Math.random() > 0.5 // Add missing punishmentServed
             }))
           }
         },
@@ -117,7 +123,9 @@ const AttendanceHistory = () => {
               name: `Student ${i + 1}`,
               matricNumber: `MTU/2023/${1000 + i}`,
               level: '300L',
-              absences: Math.floor(Math.random() * 5)
+              absences: Math.floor(Math.random() * 5),
+              lastAttendance: new Date().toISOString().split('T')[0], // Add missing lastAttendance
+              punishmentServed: Math.random() > 0.5 // Add missing punishmentServed
             }))
           }
         }
