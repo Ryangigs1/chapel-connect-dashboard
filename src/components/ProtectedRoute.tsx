@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { decryptToken } from '@/utils/encryption';
+import { initEventNotifications } from '@/utils/eventNotification';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -12,6 +13,19 @@ interface ProtectedRouteProps {
 const ProtectedRoute = ({ children, isAdmin = false }: ProtectedRouteProps) => {
   const { user, loading, isAuthenticated } = useAuth();
   const location = useLocation();
+
+  // Initialize event notifications when component mounts
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      // Start checking for upcoming events
+      const cleanupNotifications = initEventNotifications(user);
+      
+      // Clean up when component unmounts
+      return () => {
+        cleanupNotifications();
+      };
+    }
+  }, [isAuthenticated, user]);
 
   // If still loading, show a loading spinner with animation
   if (loading) {

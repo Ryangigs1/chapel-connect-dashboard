@@ -20,6 +20,10 @@ import UserProfile from "./pages/UserProfile";
 import ChapelEvents from "./pages/ChapelEvents";
 import Dashboard from "./pages/Dashboard";
 import Gallery from "./pages/Gallery";
+import Music from "./pages/Music";
+import PrayerRequest from "./pages/PrayerRequest";
+import ChapelRules from "./pages/ChapelRules";
+import Chaplains from "./pages/Chaplains";
 
 const queryClient = new QueryClient();
 
@@ -95,6 +99,26 @@ const App = () => (
               <Route path="/gallery" element={
                 <ProtectedRoute>
                   <Gallery />
+                </ProtectedRoute>
+              } />
+              <Route path="/music" element={
+                <ProtectedRoute>
+                  <Music />
+                </ProtectedRoute>
+              } />
+              <Route path="/prayer-request" element={
+                <ProtectedRoute>
+                  <PrayerRequest />
+                </ProtectedRoute>
+              } />
+              <Route path="/chapel-rules" element={
+                <ProtectedRoute>
+                  <ChapelRules />
+                </ProtectedRoute>
+              } />
+              <Route path="/chaplains" element={
+                <ProtectedRoute>
+                  <Chaplains />
                 </ProtectedRoute>
               } />
               
