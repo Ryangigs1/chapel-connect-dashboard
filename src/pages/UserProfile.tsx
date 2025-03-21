@@ -1,4 +1,5 @@
-import { useState } from 'react';
+
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Card, 
@@ -13,6 +14,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { 
   ChevronLeft, 
   User, 
@@ -23,65 +26,155 @@ import {
   Shield, 
   Lock,
   Save,
-  XCircle
+  XCircle,
+  Upload,
+  Camera
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from 'sonner';
+import { useToast } from '@/components/ui/use-toast';
 import Navbar from '@/components/Navbar';
 import { useAuth } from '@/lib/auth';
+import { useTheme } from '@/lib/theme';
 import { mockStudents } from '@/utils/mockData';
+import { encryptData, decryptData } from '@/utils/encryption';
 
 const UserProfile = () => {
   const { user } = useAuth();
+  const { theme } = useTheme();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Find user in mock data
   const mockUser = mockStudents.find(s => s.matricNumber === (user?.id || ''));
   
+  // Try to get user data from localStorage first
+  const getUserFromStorage = () => {
+    try {
+      const storedData = localStorage.getItem('mtu_user_profile');
+      if (!storedData) return null;
+      
+      const decryptedData = decryptData(storedData);
+      return decryptedData;
+    } catch (error) {
+      console.error('Error retrieving user profile:', error);
+      return null;
+    }
+  };
+  
+  const storedUserData = getUserFromStorage();
+  
   const [formData, setFormData] = useState({
-    name: user?.name || '',
-    email: user?.email || '',
-    phone: '08012345678',
-    department: 'Computer Science',
-    level: mockUser?.grade || '300L',
-    address: 'Student Hostel, Block A Room 205',
-    emergencyContact: 'Mrs. Johnson - 08023456789',
-    bio: 'I am a dedicated student with focus on academic excellence and spiritual growth.'
+    name: storedUserData?.name || user?.name || '',
+    email: storedUserData?.email || user?.email || '',
+    phone: storedUserData?.phone || '08012345678',
+    department: storedUserData?.department || 'Computer Science',
+    level: storedUserData?.level || mockUser?.grade || '300L',
+    address: storedUserData?.address || 'Student Hostel, Block A Room 205',
+    emergencyContact: storedUserData?.emergencyContact || 'Mrs. Johnson - 08023456789',
+    bio: storedUserData?.bio || 'I am a dedicated student with focus on academic excellence and spiritual growth.',
+    avatarUrl: storedUserData?.avatarUrl || user?.avatarUrl || ''
+  });
+  
+  const [settings, setSettings] = useState({
+    emailNotifications: storedUserData?.settings?.emailNotifications || true,
+    serviceReminders: storedUserData?.settings?.serviceReminders || true,
+    absenceAlerts: storedUserData?.settings?.absenceAlerts || true,
+    showProfileInDirectory: storedUserData?.settings?.showProfileInDirectory || true,
+    allowChaplainContact: storedUserData?.settings?.allowChaplainContact || true
   });
   
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
   
+  const handleSettingToggle = (setting: keyof typeof settings) => {
+    setSettings(prev => ({ ...prev, [setting]: !prev[setting] }));
+  };
+  
+  const saveToLocalStorage = (data: any) => {
+    try {
+      const encryptedData = encryptData(data);
+      localStorage.setItem('mtu_user_profile', encryptedData);
+    } catch (error) {
+      console.error('Error saving profile data:', error);
+      toast({
+        title: "Save error",
+        description: "Could not save your profile data",
+        variant: "destructive"
+      });
+    }
+  };
+  
   const handleSave = () => {
     setSaving(true);
+    
+    // Save form data and settings
+    const profileData = {
+      ...formData,
+      settings
+    };
+    
+    saveToLocalStorage(profileData);
     
     // Simulate API save delay
     setTimeout(() => {
       setSaving(false);
       setEditing(false);
-      toast.success('Profile updated successfully');
+      toast({
+        title: "Profile updated",
+        description: "Your profile has been updated successfully"
+      });
     }, 1000);
   };
   
   const handleCancel = () => {
     setEditing(false);
-    // Reset form data to original values
-    setFormData({
-      name: user?.name || '',
-      email: user?.email || '',
-      phone: '08012345678',
-      department: 'Computer Science',
-      level: mockUser?.grade || '300L',
-      address: 'Student Hostel, Block A Room 205',
-      emergencyContact: 'Mrs. Johnson - 08023456789',
-      bio: 'I am a dedicated student with focus on academic excellence and spiritual growth.'
+    // Reset form data to stored values or defaults
+    const storedData = getUserFromStorage();
+    if (storedData) {
+      setFormData({
+        name: storedData.name || user?.name || '',
+        email: storedData.email || user?.email || '',
+        phone: storedData.phone || '08012345678',
+        department: storedData.department || 'Computer Science',
+        level: storedData.level || mockUser?.grade || '300L',
+        address: storedData.address || 'Student Hostel, Block A Room 205',
+        emergencyContact: storedData.emergencyContact || 'Mrs. Johnson - 08023456789',
+        bio: storedData.bio || 'I am a dedicated student with focus on academic excellence and spiritual growth.',
+        avatarUrl: storedData.avatarUrl || user?.avatarUrl || ''
+      });
+      setSettings(storedData.settings || {
+        emailNotifications: true,
+        serviceReminders: true,
+        absenceAlerts: true,
+        showProfileInDirectory: true,
+        allowChaplainContact: true
+      });
+    } else {
+      // Reset to defaults
+      setFormData({
+        name: user?.name || '',
+        email: user?.email || '',
+        phone: '08012345678',
+        department: 'Computer Science',
+        level: mockUser?.grade || '300L',
+        address: 'Student Hostel, Block A Room 205',
+        emergencyContact: 'Mrs. Johnson - 08023456789',
+        bio: 'I am a dedicated student with focus on academic excellence and spiritual growth.',
+        avatarUrl: user?.avatarUrl || ''
+      });
+    }
+    
+    toast({
+      title: "Edits cancelled",
+      description: "Changes have been discarded"
     });
-    toast.info('Edits cancelled');
   };
   
   const getUserInitials = () => {
@@ -91,6 +184,69 @@ const UserProfile = () => {
     if (names.length === 1) return names[0][0].toUpperCase();
     
     return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
+  };
+  
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    
+    const file = files[0];
+    
+    // Basic validation
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload an image file",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Size validation (2MB max)
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please upload an image smaller than 2MB",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setUploadingAvatar(true);
+    
+    // Read file as base64
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64Image = reader.result as string;
+      
+      // Update form data with new avatar URL
+      setFormData(prev => ({ ...prev, avatarUrl: base64Image }));
+      
+      // Update user data in local storage
+      const storedData = getUserFromStorage() || {};
+      const updatedData = {
+        ...storedData,
+        avatarUrl: base64Image
+      };
+      saveToLocalStorage(updatedData);
+      
+      setUploadingAvatar(false);
+      toast({
+        title: "Avatar updated",
+        description: "Your profile picture has been updated"
+      });
+    };
+    
+    reader.onerror = () => {
+      setUploadingAvatar(false);
+      toast({
+        title: "Upload failed",
+        description: "Failed to read the image file",
+        variant: "destructive"
+      });
+    };
+    
+    reader.readAsDataURL(file);
   };
   
   return (
@@ -116,21 +272,56 @@ const UserProfile = () => {
         
         <div className="grid md:grid-cols-3 gap-6">
           <div className="md:col-span-1 space-y-6">
-            <Card className="bg-white/80 backdrop-blur-sm">
+            <Card className="bg-card">
               <CardContent className="pt-6 flex flex-col items-center text-center">
-                <Avatar className="h-24 w-24 mb-4">
-                  <AvatarImage src={user?.avatarUrl} alt={user?.name || 'User'} />
-                  <AvatarFallback className="text-2xl bg-primary/10 text-primary">
-                    {getUserInitials()}
-                  </AvatarFallback>
-                </Avatar>
+                <div className="relative group">
+                  <Avatar className="h-24 w-24 mb-4 group-hover:opacity-80 transition-opacity">
+                    <AvatarImage src={formData.avatarUrl} alt={user?.name || 'User'} />
+                    <AvatarFallback className="text-2xl bg-primary/10 text-primary">
+                      {getUserInitials()}
+                    </AvatarFallback>
+                  </Avatar>
+                  
+                  <div 
+                    className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <div className="bg-black/50 rounded-full h-8 w-8 flex items-center justify-center">
+                      <Camera className="h-5 w-5 text-white" />
+                    </div>
+                    <input 
+                      type="file"
+                      ref={fileInputRef}
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleAvatarUpload}
+                      disabled={uploadingAvatar}
+                    />
+                  </div>
+                </div>
                 
                 <h2 className="text-xl font-bold mb-1">{user?.name}</h2>
                 <p className="text-muted-foreground mb-4">{mockUser?.matricNumber}</p>
                 
                 <div className="w-full space-y-2">
-                  <Button variant="outline" className="w-full" size="sm">
-                    Change Profile Picture
+                  <Button 
+                    variant="outline" 
+                    className="w-full" 
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingAvatar}
+                  >
+                    {uploadingAvatar ? (
+                      <>
+                        <span className="loading-dots"></span>
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-4 w-4 mr-1" />
+                        Change Profile Picture
+                      </>
+                    )}
                   </Button>
                   
                   {!editing ? (
@@ -205,7 +396,7 @@ const UserProfile = () => {
               </CardContent>
             </Card>
             
-            <Card className="bg-white/80 backdrop-blur-sm">
+            <Card className="bg-card">
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg flex items-center">
                   <Lock className="h-4 w-4 mr-2 text-primary" />
@@ -232,7 +423,7 @@ const UserProfile = () => {
               </TabsList>
               
               <TabsContent value="profile" className="space-y-6 mt-6">
-                <Card className="bg-white/80 backdrop-blur-sm">
+                <Card className="bg-card">
                   <CardHeader>
                     <CardTitle>Personal Information</CardTitle>
                     <CardDescription>
@@ -364,7 +555,7 @@ const UserProfile = () => {
               </TabsContent>
               
               <TabsContent value="chapel" className="space-y-6 mt-6">
-                <Card className="bg-white/80 backdrop-blur-sm">
+                <Card className="bg-card">
                   <CardHeader>
                     <CardTitle>Chapel Attendance Record</CardTitle>
                     <CardDescription>
@@ -374,14 +565,14 @@ const UserProfile = () => {
                   <CardContent>
                     <div className="space-y-6">
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <Card className="bg-white shadow-sm">
+                        <Card className="bg-card shadow-sm">
                           <CardContent className="p-4">
                             <div className="text-sm text-muted-foreground mb-1">Total Services</div>
                             <div className="text-2xl font-bold">24</div>
                           </CardContent>
                         </Card>
                         
-                        <Card className="bg-white shadow-sm">
+                        <Card className="bg-card shadow-sm">
                           <CardContent className="p-4">
                             <div className="text-sm text-muted-foreground mb-1">Attended</div>
                             <div className="text-2xl font-bold">
@@ -390,7 +581,7 @@ const UserProfile = () => {
                           </CardContent>
                         </Card>
                         
-                        <Card className="bg-white shadow-sm">
+                        <Card className="bg-card shadow-sm">
                           <CardContent className="p-4">
                             <div className="text-sm text-muted-foreground mb-1">Absences</div>
                             <div className="text-2xl font-bold text-red-500">
@@ -399,7 +590,7 @@ const UserProfile = () => {
                           </CardContent>
                         </Card>
                         
-                        <Card className="bg-white shadow-sm">
+                        <Card className="bg-card shadow-sm">
                           <CardContent className="p-4">
                             <div className="text-sm text-muted-foreground mb-1">Percentage</div>
                             <div className="text-2xl font-bold">
@@ -409,7 +600,7 @@ const UserProfile = () => {
                         </Card>
                       </div>
                       
-                      <Card className="bg-white shadow-sm">
+                      <Card className="bg-card shadow-sm">
                         <CardHeader className="pb-2">
                           <CardTitle className="text-lg">Recent Attendance</CardTitle>
                         </CardHeader>
@@ -439,7 +630,8 @@ const UserProfile = () => {
                                     </p>
                                   </div>
                                   <div className={`px-2 py-1 rounded text-sm ${
-                                    attended ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                    attended ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' : 
+                                              'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
                                   }`}>
                                     {attended ? 'Present' : 'Absent'}
                                   </div>
@@ -455,49 +647,89 @@ const UserProfile = () => {
               </TabsContent>
               
               <TabsContent value="settings" className="space-y-6 mt-6">
-                <Card className="bg-white/80 backdrop-blur-sm">
+                <Card className="bg-card">
                   <CardHeader>
                     <CardTitle>Account Settings</CardTitle>
                     <CardDescription>
                       Manage your account preferences
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-6">
+                    <div className="space-y-4">
+                      <h3 className="font-medium">Theme & Appearance</h3>
+                      <div className="flex items-center justify-between py-2 border-b">
+                        <div>
+                          <p className="text-sm font-medium">Theme</p>
+                          <p className="text-xs text-muted-foreground">Switch between light and dark mode</p>
+                        </div>
+                        <ThemeToggle />
+                      </div>
+                    </div>
+                    
                     <div className="space-y-2">
                       <h3 className="font-medium">Email Notifications</h3>
-                      <div className="flex items-center justify-between py-2 border-b">
-                        <p className="text-sm">Chapel Announcements</p>
-                        <Button variant="outline" size="sm">
-                          Enabled
-                        </Button>
-                      </div>
-                      <div className="flex items-center justify-between py-2 border-b">
-                        <p className="text-sm">Service Reminders</p>
-                        <Button variant="outline" size="sm">
-                          Enabled
-                        </Button>
-                      </div>
-                      <div className="flex items-center justify-between py-2 border-b">
-                        <p className="text-sm">Absence Alerts</p>
-                        <Button variant="outline" size="sm">
-                          Enabled
-                        </Button>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between py-2 border-b">
+                          <div>
+                            <p className="text-sm font-medium">Chapel Announcements</p>
+                            <p className="text-xs text-muted-foreground">Get notified about upcoming events and news</p>
+                          </div>
+                          <Switch 
+                            checked={settings.emailNotifications} 
+                            onCheckedChange={() => handleSettingToggle('emailNotifications')}
+                            disabled={!editing}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between py-2 border-b">
+                          <div>
+                            <p className="text-sm font-medium">Service Reminders</p>
+                            <p className="text-xs text-muted-foreground">Receive reminders before chapel services</p>
+                          </div>
+                          <Switch 
+                            checked={settings.serviceReminders} 
+                            onCheckedChange={() => handleSettingToggle('serviceReminders')}
+                            disabled={!editing}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between py-2 border-b">
+                          <div>
+                            <p className="text-sm font-medium">Absence Alerts</p>
+                            <p className="text-xs text-muted-foreground">Get notified when you're marked absent</p>
+                          </div>
+                          <Switch 
+                            checked={settings.absenceAlerts} 
+                            onCheckedChange={() => handleSettingToggle('absenceAlerts')}
+                            disabled={!editing}
+                          />
+                        </div>
                       </div>
                     </div>
                     
                     <div className="space-y-2">
                       <h3 className="font-medium">Privacy Settings</h3>
-                      <div className="flex items-center justify-between py-2 border-b">
-                        <p className="text-sm">Show profile in student directory</p>
-                        <Button variant="outline" size="sm">
-                          Enabled
-                        </Button>
-                      </div>
-                      <div className="flex items-center justify-between py-2 border-b">
-                        <p className="text-sm">Allow chaplain to contact me</p>
-                        <Button variant="outline" size="sm">
-                          Enabled
-                        </Button>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between py-2 border-b">
+                          <div>
+                            <p className="text-sm font-medium">Show profile in student directory</p>
+                            <p className="text-xs text-muted-foreground">Make your profile visible to other students</p>
+                          </div>
+                          <Switch 
+                            checked={settings.showProfileInDirectory} 
+                            onCheckedChange={() => handleSettingToggle('showProfileInDirectory')}
+                            disabled={!editing}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between py-2 border-b">
+                          <div>
+                            <p className="text-sm font-medium">Allow chaplain to contact me</p>
+                            <p className="text-xs text-muted-foreground">Allow chapel staff to contact you directly</p>
+                          </div>
+                          <Switch 
+                            checked={settings.allowChaplainContact} 
+                            onCheckedChange={() => handleSettingToggle('allowChaplainContact')}
+                            disabled={!editing}
+                          />
+                        </div>
                       </div>
                     </div>
                     
@@ -511,6 +743,18 @@ const UserProfile = () => {
                       </Button>
                     </div>
                   </CardContent>
+                  {editing && (
+                    <CardFooter>
+                      <Button 
+                        variant="default" 
+                        onClick={handleSave}
+                        disabled={saving}
+                        className="ml-auto"
+                      >
+                        {saving ? 'Saving Settings...' : 'Save Settings'}
+                      </Button>
+                    </CardFooter>
+                  )}
                 </Card>
               </TabsContent>
             </Tabs>

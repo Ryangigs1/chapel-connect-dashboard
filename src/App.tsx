@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./lib/auth";
 import { useAuth } from "./lib/auth";
+import { ThemeProvider } from "./lib/theme";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Index from "./pages/Index";
 import Students from "./pages/Students";
@@ -18,6 +19,7 @@ import AttendanceDetails from "./pages/AttendanceDetails";
 import UserProfile from "./pages/UserProfile";
 import ChapelEvents from "./pages/ChapelEvents";
 import Dashboard from "./pages/Dashboard";
+import Gallery from "./pages/Gallery";
 
 const queryClient = new QueryClient();
 
@@ -35,66 +37,73 @@ const Root = () => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <BrowserRouter>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <Routes>
-            {/* Auth routes */}
-            <Route path="/sign-in" element={<SignIn />} />
-            <Route path="/sign-up" element={<SignUp />} />
-            <Route path="/admin/login" element={<AdminSignIn />} />
-            
-            {/* Root route - checks auth and redirects appropriately */}
-            <Route path="/" element={<Root />} />
-            
-            {/* Protected routes */}
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/index" element={
-              <ProtectedRoute>
-                <Index />
-              </ProtectedRoute>
-            } />
-            <Route path="/students" element={
-              <ProtectedRoute>
-                <Students />
-              </ProtectedRoute>
-            } />
-            <Route path="/students/:studentId" element={
-              <ProtectedRoute>
-                <Students />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin" element={
-              <ProtectedRoute isAdmin={true}>
-                <Admin />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/attendance/:attendanceId" element={
-              <ProtectedRoute isAdmin={true}>
-                <AttendanceDetails />
-              </ProtectedRoute>
-            } />
-            <Route path="/profile" element={
-              <ProtectedRoute>
-                <UserProfile />
-              </ProtectedRoute>
-            } />
-            <Route path="/events" element={
-              <ProtectedRoute>
-                <ChapelEvents />
-              </ProtectedRoute>
-            } />
-            
-            {/* Catch-all route */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </TooltipProvider>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <Routes>
+              {/* Auth routes */}
+              <Route path="/sign-in" element={<SignIn />} />
+              <Route path="/sign-up" element={<SignUp />} />
+              <Route path="/admin/login" element={<AdminSignIn />} />
+              
+              {/* Root route - checks auth and redirects appropriately */}
+              <Route path="/" element={<Root />} />
+              
+              {/* Protected routes */}
+              <Route path="/dashboard" element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/index" element={
+                <ProtectedRoute>
+                  <Index />
+                </ProtectedRoute>
+              } />
+              <Route path="/students" element={
+                <ProtectedRoute>
+                  <Students />
+                </ProtectedRoute>
+              } />
+              <Route path="/students/:studentId" element={
+                <ProtectedRoute>
+                  <Students />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin" element={
+                <ProtectedRoute isAdmin={true}>
+                  <Admin />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/attendance/:attendanceId" element={
+                <ProtectedRoute isAdmin={true}>
+                  <AttendanceDetails />
+                </ProtectedRoute>
+              } />
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <UserProfile />
+                </ProtectedRoute>
+              } />
+              <Route path="/events" element={
+                <ProtectedRoute>
+                  <ChapelEvents />
+                </ProtectedRoute>
+              } />
+              <Route path="/gallery" element={
+                <ProtectedRoute>
+                  <Gallery />
+                </ProtectedRoute>
+              } />
+              
+              {/* Catch-all route */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </TooltipProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   </QueryClientProvider>
 );

@@ -158,6 +158,18 @@ html {
   @apply absolute top-0 h-full w-1/3 bg-primary animate-loader;
 }
 
+/* Loading dots animation */
+.loading-dots::after {
+  content: "...";
+  animation: dots 1.5s infinite;
+}
+
+@keyframes dots {
+  0%, 20% { content: "."; }
+  40% { content: ".."; }
+  60%, 100% { content: "..."; }
+}
+
 /* Fade-in animations for content */
 .fade-in {
   @apply animate-fade-in;
@@ -197,4 +209,43 @@ html {
 /* Prevent text selection during drag operations */
 .no-select {
   user-select: none;
+}
+
+/* Gallery image hover effects */
+.gallery-image-hover {
+  @apply transition-all duration-300 overflow-hidden;
+}
+
+.gallery-image-hover img {
+  @apply transition-transform duration-500;
+}
+
+.gallery-image-hover:hover img {
+  @apply scale-110;
+}
+
+.gallery-image-hover .overlay {
+  @apply absolute inset-0 bg-black/60 opacity-0 transition-opacity flex items-center justify-center;
+}
+
+.gallery-image-hover:hover .overlay {
+  @apply opacity-100;
+}
+
+/* Avatar upload hover effect */
+.avatar-upload-overlay {
+  @apply absolute inset-0 bg-black/50 flex items-center justify-center rounded-full opacity-0 transition-opacity cursor-pointer;
+}
+
+.avatar-container:hover .avatar-upload-overlay {
+  @apply opacity-100;
+}
+
+/* Carousel fade effect */
+.carousel-fade .carousel-item {
+  @apply opacity-0 transition-opacity duration-300;
+}
+
+.carousel-fade .carousel-item.active {
+  @apply opacity-100;
 }

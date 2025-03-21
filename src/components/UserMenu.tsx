@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import {
   DropdownMenu,
@@ -8,14 +9,21 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Settings, LogOut, User, HelpCircle, Moon, Sun, LifeBuoy } from 'lucide-react';
+import { Settings, LogOut, User, HelpCircle, Moon, Sun, LifeBuoy, Bookmark, Image } from 'lucide-react';
+import { useTheme } from '@/lib/theme';
+import { ThemeToggle } from './ThemeToggle';
 
 const UserMenu = () => {
   const { user, signOut } = useAuth();
+  const { theme, setTheme } = useTheme();
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
 
   // Function to get user initials for the avatar fallback
   const getUserInitials = () => {
@@ -29,6 +37,11 @@ const UserMenu = () => {
 
   const handleSignOut = async () => {
     await signOut();
+    setOpen(false);
+  };
+
+  const navigateTo = (path: string) => {
+    navigate(path);
     setOpen(false);
   };
 
@@ -55,19 +68,43 @@ const UserMenu = () => {
         
         <DropdownMenuSeparator />
         
-        <DropdownMenuItem className="cursor-pointer">
+        <DropdownMenuItem className="cursor-pointer" onClick={() => navigateTo('/profile')}>
           <User className="mr-2 h-4 w-4" />
           <span>Profile</span>
         </DropdownMenuItem>
         
-        <DropdownMenuItem className="cursor-pointer">
-          <Settings className="mr-2 h-4 w-4" />
-          <span>Settings</span>
+        <DropdownMenuItem className="cursor-pointer" onClick={() => navigateTo('/dashboard')}>
+          <Bookmark className="mr-2 h-4 w-4" />
+          <span>Dashboard</span>
         </DropdownMenuItem>
+        
+        <DropdownMenuItem className="cursor-pointer" onClick={() => navigateTo('/gallery')}>
+          <Image className="mr-2 h-4 w-4" />
+          <span>Gallery</span>
+        </DropdownMenuItem>
+        
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>
+            <Settings className="mr-2 h-4 w-4" />
+            <span>Settings</span>
+          </DropdownMenuSubTrigger>
+          <DropdownMenuSubContent>
+            <DropdownMenuItem>
+              <span>Theme</span>
+              <ThemeToggle />
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigateTo('/profile')}>
+              <span>Account</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <span>Notifications</span>
+            </DropdownMenuItem>
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
         
         <DropdownMenuItem className="cursor-pointer">
           <HelpCircle className="mr-2 h-4 w-4" />
-          <span>Help</span>
+          <span>Help & Support</span>
         </DropdownMenuItem>
         
         <DropdownMenuSeparator />
