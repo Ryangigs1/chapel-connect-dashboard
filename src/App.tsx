@@ -14,6 +14,10 @@ import NotFound from "./pages/NotFound";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import AdminSignIn from "./pages/AdminSignIn";
+import AttendanceDetails from "./pages/AttendanceDetails";
+import UserProfile from "./pages/UserProfile";
+import ChapelEvents from "./pages/ChapelEvents";
+import Dashboard from "./pages/Dashboard";
 
 const queryClient = new QueryClient();
 
@@ -25,7 +29,7 @@ const Root = () => {
   if (loading) return null;
   
   // If not authenticated, redirect to sign-in
-  return isAuthenticated ? <Index /> : <Navigate to="/sign-in" replace />;
+  return isAuthenticated ? <Dashboard /> : <Navigate to="/sign-in" replace />;
 };
 
 const App = () => (
@@ -47,6 +51,11 @@ const App = () => (
             {/* Protected routes */}
             <Route path="/dashboard" element={
               <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/index" element={
+              <ProtectedRoute>
                 <Index />
               </ProtectedRoute>
             } />
@@ -67,7 +76,17 @@ const App = () => (
             } />
             <Route path="/admin/attendance/:attendanceId" element={
               <ProtectedRoute isAdmin={true}>
-                <Admin />
+                <AttendanceDetails />
+              </ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <UserProfile />
+              </ProtectedRoute>
+            } />
+            <Route path="/events" element={
+              <ProtectedRoute>
+                <ChapelEvents />
               </ProtectedRoute>
             } />
             

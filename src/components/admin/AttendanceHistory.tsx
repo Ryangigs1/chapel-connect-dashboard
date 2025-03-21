@@ -24,7 +24,6 @@ import {
   FileText, 
   Calendar, 
   User, 
-  Clock, 
   Database, 
   ChevronRight,
   RefreshCcw

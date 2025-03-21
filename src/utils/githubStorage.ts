@@ -2,10 +2,10 @@
 import { ParsedCsvData } from './csvParser';
 import { encryptData, decryptData } from './encryption';
 
-// GitHub API configuration
-const GITHUB_TOKEN = 'your-github-token'; // In production, use env variables via Supabase
-const GITHUB_USERNAME = 'your-github-username';
-const GITHUB_REPO = 'your-github-repo';
+// GitHub API configuration - these would come from environment variables in production
+const GITHUB_TOKEN = 'ghp_yourgithubtoken'; // Replace with your actual token for testing
+const GITHUB_USERNAME = 'mtu-chapel';
+const GITHUB_REPO = 'chapel-attendance-data';
 const GITHUB_BRANCH = 'main';
 const DATA_PATH = 'data/attendance';
 
@@ -16,6 +16,12 @@ export interface StoredAttendanceData {
   uploadedBy: string;
   data: ParsedCsvData;
 }
+
+// Simulate GitHub API for development without exposing tokens
+const simulateGitHubApi = true;
+
+// In-memory cache for development
+let localStorageCache: StoredAttendanceData[] = [];
 
 /**
  * Stores attendance data in GitHub repository
@@ -36,10 +42,39 @@ export const storeAttendanceData = async (
     data
   };
   
-  // Construct file path in the GitHub repo
-  const filePath = `${DATA_PATH}/${id}.json`;
+  if (simulateGitHubApi) {
+    // Store in localStorage for development/demo
+    try {
+      // Get existing data
+      const existingData = localStorage.getItem('mtu_attendance_data');
+      let dataArray: StoredAttendanceData[] = [];
+      
+      if (existingData) {
+        dataArray = JSON.parse(existingData);
+      }
+      
+      // Add new data
+      dataArray.push(storageData);
+      
+      // Save back to localStorage
+      localStorage.setItem('mtu_attendance_data', JSON.stringify(dataArray));
+      
+      // Update cache
+      localStorageCache = dataArray;
+      
+      console.log('Stored attendance data in localStorage:', storageData);
+      return storageData;
+    } catch (error) {
+      console.error('Error storing data in localStorage:', error);
+      throw new Error('Failed to store attendance data');
+    }
+  }
   
+  // Real GitHub API implementation
   try {
+    // Construct file path in the GitHub repo
+    const filePath = `${DATA_PATH}/${id}.json`;
+    
     // Convert data to JSON string
     const content = JSON.stringify(storageData, null, 2);
     
@@ -82,6 +117,40 @@ export const storeAttendanceData = async (
  * Retrieves all stored attendance data from GitHub
  */
 export const getStoredAttendanceData = async (): Promise<StoredAttendanceData[]> => {
+  if (simulateGitHubApi) {
+    // Return from localStorage for development/demo
+    try {
+      // If we have a cache, use it
+      if (localStorageCache.length > 0) {
+        return localStorageCache;
+      }
+      
+      // Get data from localStorage
+      const storedData = localStorage.getItem('mtu_attendance_data');
+      
+      if (!storedData) {
+        return [];
+      }
+      
+      const parsedData: StoredAttendanceData[] = JSON.parse(storedData);
+      
+      // Sort by timestamp (newest first)
+      const sortedData = parsedData.sort((a, b) => 
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      );
+      
+      // Update cache
+      localStorageCache = sortedData;
+      
+      console.log('Retrieved attendance data from localStorage:', sortedData);
+      return sortedData;
+    } catch (error) {
+      console.error('Error retrieving data from localStorage:', error);
+      return [];
+    }
+  }
+  
+  // Real GitHub API implementation
   try {
     // First, get the contents of the data directory
     const response = await fetch(
@@ -150,9 +219,38 @@ export const getStoredAttendanceData = async (): Promise<StoredAttendanceData[]>
 };
 
 /**
- * Retrieves a single attendance data record from GitHub by ID
+ * Retrieves a single attendance data record by ID
  */
 export const getAttendanceDataById = async (id: string): Promise<StoredAttendanceData | null> => {
+  if (simulateGitHubApi) {
+    // Return from localStorage for development/demo
+    try {
+      // If we have a cache, use it
+      if (localStorageCache.length > 0) {
+        return localStorageCache.find(item => item.id === id) || null;
+      }
+      
+      // Get data from localStorage
+      const storedData = localStorage.getItem('mtu_attendance_data');
+      
+      if (!storedData) {
+        return null;
+      }
+      
+      const parsedData: StoredAttendanceData[] = JSON.parse(storedData);
+      
+      // Update cache
+      localStorageCache = parsedData;
+      
+      // Find and return the matching record
+      return parsedData.find(item => item.id === id) || null;
+    } catch (error) {
+      console.error('Error retrieving data from localStorage:', error);
+      return null;
+    }
+  }
+  
+  // Real GitHub API implementation
   try {
     const filePath = `${DATA_PATH}/${id}.json`;
     
@@ -197,4 +295,54 @@ export const getAttendanceDataById = async (id: string): Promise<StoredAttendanc
     console.error('Error retrieving data from GitHub:', error);
     throw new Error('Failed to retrieve attendance data from GitHub');
   }
+};
+
+/**
+ * Updates an existing attendance record
+ */
+export const updateAttendanceData = async (
+  id: string,
+  updatedData: Partial<StoredAttendanceData>
+): Promise<StoredAttendanceData | null> => {
+  if (simulateGitHubApi) {
+    try {
+      // Get existing data
+      const storedData = localStorage.getItem('mtu_attendance_data');
+      
+      if (!storedData) {
+        return null;
+      }
+      
+      const parsedData: StoredAttendanceData[] = JSON.parse(storedData);
+      
+      // Find the record to update
+      const index = parsedData.findIndex(item => item.id === id);
+      
+      if (index === -1) {
+        return null;
+      }
+      
+      // Update the record
+      parsedData[index] = {
+        ...parsedData[index],
+        ...updatedData,
+        timestamp: updatedData.timestamp || new Date().toISOString() // Update timestamp if not provided
+      };
+      
+      // Save back to localStorage
+      localStorage.setItem('mtu_attendance_data', JSON.stringify(parsedData));
+      
+      // Update cache
+      localStorageCache = parsedData;
+      
+      return parsedData[index];
+    } catch (error) {
+      console.error('Error updating data in localStorage:', error);
+      return null;
+    }
+  }
+  
+  // Real GitHub API implementation would go here
+  // This would involve fetching the file, updating it, and pushing back to GitHub
+  return null;
 };
