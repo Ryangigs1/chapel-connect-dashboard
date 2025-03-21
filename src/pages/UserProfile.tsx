@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -44,7 +43,7 @@ const UserProfile = () => {
     email: user?.email || '',
     phone: '08012345678',
     department: 'Computer Science',
-    level: mockUser?.level || '300L',
+    level: mockUser?.grade || '300L',
     address: 'Student Hostel, Block A Room 205',
     emergencyContact: 'Mrs. Johnson - 08023456789',
     bio: 'I am a dedicated student with focus on academic excellence and spiritual growth.'
@@ -77,7 +76,7 @@ const UserProfile = () => {
       email: user?.email || '',
       phone: '08012345678',
       department: 'Computer Science',
-      level: mockUser?.level || '300L',
+      level: mockUser?.grade || '300L',
       address: 'Student Hostel, Block A Room 205',
       emergencyContact: 'Mrs. Johnson - 08023456789',
       bio: 'I am a dedicated student with focus on academic excellence and spiritual growth.'
@@ -175,7 +174,7 @@ const UserProfile = () => {
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <div>
                       <p className="text-sm text-muted-foreground">Level</p>
-                      <p className="font-medium">{mockUser?.level}</p>
+                      <p className="font-medium">{mockUser?.grade}</p>
                     </div>
                   </div>
                   
@@ -283,7 +282,7 @@ const UserProfile = () => {
                           name="level" 
                           value={formData.level} 
                           onChange={handleInputChange}
-                          disabled={true} // Level cannot be changed by student
+                          disabled={true}
                         />
                       </div>
                       
@@ -294,7 +293,7 @@ const UserProfile = () => {
                           name="department" 
                           value={formData.department} 
                           onChange={handleInputChange}
-                          disabled={true} // Department cannot be changed by student
+                          disabled={true}
                         />
                       </div>
                       
@@ -304,7 +303,7 @@ const UserProfile = () => {
                           id="matricNumber" 
                           name="matricNumber" 
                           value={mockUser?.matricNumber || ''} 
-                          disabled={true} // Matric number cannot be changed
+                          disabled={true}
                         />
                       </div>
                     </div>
@@ -419,7 +418,7 @@ const UserProfile = () => {
                             {[...Array(5)].map((_, i) => {
                               const date = new Date();
                               date.setDate(date.getDate() - i * 3);
-                              const attended = i !== 1; // Mock one absence
+                              const attended = i !== 1;
                               
                               return (
                                 <div key={i} className="flex justify-between items-center py-2 border-b">
