@@ -64,7 +64,7 @@ const chaplains: Chaplain[] = [
     phone: '+234 803 123 4567',
     office: 'Chaplaincy Building, Room 101',
     officeHours: 'Monday-Friday, 9:00 AM - 4:00 PM',
-    bio: 'Rev. Dr. Michael Adebayo has served as University Chaplain for 8 years. He holds a PhD in Theology from Covenant University and a Master of Divinity from Redeemer's University. He specializes in pastoral counseling and spiritual formation for young adults.',
+    bio: 'Rev. Dr. Michael Adebayo has served as University Chaplain for 8 years. He holds a PhD in Theology from Covenant University and a Master of Divinity from Redeemer\'s University. He specializes in pastoral counseling and spiritual formation for young adults.',
     imageUrl: 'https://images.unsplash.com/photo-1522529599102-193c0d76b5b6?w=800&auto=format&fit=crop',
     specialties: ['Spiritual Counseling', 'Biblical Studies', 'Youth Ministry']
   },
@@ -76,9 +76,9 @@ const chaplains: Chaplain[] = [
     phone: '+234 805 987 6543',
     office: 'Chaplaincy Building, Room 105',
     officeHours: 'Monday-Thursday, 10:00 AM - 3:00 PM',
-    bio: 'Pastor Grace oversees women's ministry initiatives and coordinates spiritual mentorship programs. She holds a Master's degree in Christian Counseling and has extensive experience in campus ministry.',
+    bio: 'Pastor Grace oversees women\'s ministry initiatives and coordinates spiritual mentorship programs. She holds a Master\'s degree in Christian Counseling and has extensive experience in campus ministry.',
     imageUrl: 'https://images.unsplash.com/photo-1573497161161-c3e73707e25c?w=800&auto=format&fit=crop',
-    specialties: ['Women's Ministry', 'Prayer & Intercession', 'Mentorship']
+    specialties: ['Women\'s Ministry', 'Prayer & Intercession', 'Mentorship']
   },
   {
     id: '3',
@@ -88,7 +88,7 @@ const chaplains: Chaplain[] = [
     phone: '+234 802 876 5432',
     office: 'Chaplaincy Building, Room 103',
     officeHours: 'Tuesday-Friday, 9:00 AM - 5:00 PM',
-    bio: 'Pastor Emmanuel specializes in worship ministry and coordinates the university choir and praise team. He holds a Bachelor's degree in Music and a Master's in Theology.',
+    bio: 'Pastor Emmanuel specializes in worship ministry and coordinates the university choir and praise team. He holds a Bachelor\'s degree in Music and a Master\'s in Theology.',
     imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&auto=format&fit=crop',
     specialties: ['Worship Ministry', 'Music & Arts', 'Youth Development']
   }
