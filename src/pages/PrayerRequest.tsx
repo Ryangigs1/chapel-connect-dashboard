@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { PrayerCircle, Send, ThumbsUp, Clock, Heart } from 'lucide-react';
+import { Send, ThumbsUp, Clock, Heart } from 'lucide-react';
 import { toast } from 'sonner';
 import Navbar from '@/components/Navbar';
 import { useAuth } from '@/lib/auth';
