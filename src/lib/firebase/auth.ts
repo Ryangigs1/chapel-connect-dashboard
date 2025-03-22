@@ -4,10 +4,9 @@ import {
   signInWithEmailAndPassword,
   signOut as firebaseSignOut,
   updateProfile,
-  UserCredential,
   User as FirebaseUser
 } from "firebase/auth";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { auth, db, storage } from "./index";
 import { User } from "../auth/types";
@@ -40,20 +39,24 @@ export const signUpWithEmail = async (
       photoURL: "/avatar-default.png"
     });
     
-    // Store additional user data in Firestore
+    // Use current timestamp from the client since serverTimestamp might cause issues
+    const timestamp = new Date().toISOString();
+    
+    // Store additional user data in Firestore with proper permissions
     await setDoc(doc(db, "users", user.uid), {
       uid: user.uid,
       email: user.email,
       name,
       role: "user",
       avatarUrl: "/avatar-default.png",
-      createdAt: new Date().toISOString()
+      createdAt: timestamp,
+      updatedAt: timestamp
     });
     
     return formatUser(user);
   } catch (error: any) {
     console.error("Error signing up with email and password", error);
-    throw new Error(error.message);
+    throw error; // Pass the error up to be handled by the caller
   }
 };
 
@@ -79,12 +82,17 @@ export const signInWithEmail = async (
           photoURL: userData.avatarUrl || "/avatar-default.png"
         });
       }
+      
+      // Update the user's last login time
+      await setDoc(doc(db, "users", user.uid), {
+        lastLoginAt: new Date().toISOString()
+      }, { merge: true });
     }
     
     return formatUser(user);
   } catch (error: any) {
     console.error("Error signing in with email and password", error);
-    throw new Error(error.message);
+    throw error; // Pass the error up to be handled by the caller
   }
 };
 
@@ -94,7 +102,7 @@ export const signOutUser = async (): Promise<void> => {
     await firebaseSignOut(auth);
   } catch (error: any) {
     console.error("Error signing out", error);
-    throw new Error(error.message);
+    throw error; // Pass the error up to be handled by the caller
   }
 };
 
@@ -118,13 +126,14 @@ export const uploadProfilePicture = async (
       
       // Update in Firestore
       await setDoc(doc(db, "users", userId), {
-        avatarUrl: downloadURL
+        avatarUrl: downloadURL,
+        updatedAt: new Date().toISOString()
       }, { merge: true });
     }
     
     return downloadURL;
   } catch (error: any) {
     console.error("Error uploading profile picture", error);
-    throw new Error(error.message);
+    throw error; // Pass the error up to be handled by the caller
   }
 };

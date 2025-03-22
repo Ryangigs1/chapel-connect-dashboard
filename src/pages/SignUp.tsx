@@ -1,9 +1,9 @@
-
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
+import { toast as sonnerToast } from 'sonner';
 import { Eye, EyeOff, LockKeyhole, Mail, User } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 
@@ -39,18 +39,52 @@ const SignUp = () => {
       return;
     }
 
+    if (password.length < 6) {
+      toast({
+        title: "Error",
+        description: "Password must be at least 6 characters",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       setLoading(true);
       await signUp(email, password, name);
-      toast({
-        title: "Account created",
-        description: "You've been signed up successfully. Please sign in.",
+      
+      sonnerToast.success("Account created successfully", {
+        description: "You can now sign in with your credentials",
+        duration: 5000
       });
+      
+      // Clear form
+      setName('');
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
+      
       // Redirect to sign-in page
       navigate('/sign-in');
-    } catch (error) {
+    } catch (error: any) {
       console.error("Sign up error:", error);
-      // Toast is already shown in the AuthProvider
+      let errorMessage = "Registration failed. Please try again.";
+      
+      // Map Firebase error messages to user-friendly messages
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = "This email is already registered. Please sign in instead.";
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = "Please provide a valid email address.";
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = "Password is too weak. Please use a stronger password.";
+      } else if (error.message) {
+        errorMessage = `Registration failed: ${error.message}`;
+      }
+      
+      toast({
+        title: "Registration Failed",
+        description: errorMessage,
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
