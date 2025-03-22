@@ -46,15 +46,11 @@ const SignUp = () => {
         title: "Account created",
         description: "You've been signed up successfully. Please sign in.",
       });
-      // Redirect to sign-in page instead of home
+      // Redirect to sign-in page
       navigate('/sign-in');
     } catch (error) {
       console.error("Sign up error:", error);
-      toast({
-        title: "Error creating account",
-        description: "Please try again with a different email",
-        variant: "destructive"
-      });
+      // Toast is already shown in the AuthProvider
     } finally {
       setLoading(false);
     }

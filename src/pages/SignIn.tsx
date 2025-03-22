@@ -43,11 +43,7 @@ const SignIn = () => {
       navigate('/', { replace: true });
     } catch (error) {
       console.error("Sign in error:", error);
-      toast({
-        title: "Error signing in",
-        description: "Please check your credentials and try again",
-        variant: "destructive"
-      });
+      // Toast is already shown in the AuthProvider
     } finally {
       setLoading(false);
     }
@@ -140,12 +136,6 @@ const SignIn = () => {
             >
               {loading ? "Signing in..." : "Sign in"}
             </Button>
-            
-            <div className="text-center text-sm">
-              <Link to="/admin/login" className="text-primary hover:text-primary/80 transition-colors">
-                Administrator Login
-              </Link>
-            </div>
           </div>
         </form>
       </div>
