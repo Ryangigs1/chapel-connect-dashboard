@@ -1,3 +1,4 @@
+
 import { 
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -244,8 +245,9 @@ export const getRecentComments = async (limitCount: number = 10): Promise<any[]>
     
     for (const doc of snapshot.docs) {
       const commentData = doc.data();
-      // Fix: Use the userId from commentData to create a document reference
-      const userDoc = await getDoc(doc(db, "users", commentData.userId));
+      // Fix: Create a proper document reference using userId from commentData
+      const userDocRef = doc(db, "users", commentData.userId);
+      const userDoc = await getDoc(userDocRef);
       
       comments.push({
         id: doc.id,
