@@ -19,7 +19,9 @@ import {
   query,
   orderBy,
   limit,
-  getDocs
+  getDocs,
+  DocumentData,
+  QueryDocumentSnapshot
 } from "firebase/firestore";
 import { 
   ref, 
@@ -230,24 +232,24 @@ export const addComment = async (
 };
 
 // Get recent comments
-export const getRecentComments = async (limit: number = 10): Promise<any[]> => {
+export const getRecentComments = async (limitCount: number = 10): Promise<any[]> => {
   try {
     const commentsQuery = query(
       collection(db, "comments"),
       orderBy("createdAt", "desc"),
-      limit(limit)
+      limit(limitCount)
     );
     
     const snapshot = await getDocs(commentsQuery);
     const comments: any[] = [];
     
     for (const doc of snapshot.docs) {
-      const comment = doc.data();
-      const userDoc = await getDoc(doc(db, "users", comment.userId));
+      const commentData = doc.data();
+      const userDoc = await getDoc(doc(db, "users", commentData.userId));
       
       comments.push({
         id: doc.id,
-        ...comment,
+        ...commentData,
         user: userDoc.exists() ? userDoc.data() : { name: "Unknown User" }
       });
     }

@@ -34,10 +34,10 @@ const Root = () => {
   return isAuthenticated ? <Dashboard /> : <Navigate to="/sign-in" replace />;
 };
 
-const App = () => {
-  // Create a new QueryClient instance as a state variable to avoid re-initialization
-  const [queryClient] = useState(() => new QueryClient());
+// Create a new QueryClient instance outside of the component
+const queryClient = new QueryClient();
 
+const App = () => {
   return (
     <BrowserRouter>
       <ThemeProvider>
