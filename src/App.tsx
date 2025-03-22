@@ -22,8 +22,6 @@ import PrayerRequest from "./pages/PrayerRequest";
 import ChapelRules from "./pages/ChapelRules";
 import Chaplains from "./pages/Chaplains";
 
-const queryClient = new QueryClient();
-
 // Root component to check authentication state
 const Root = () => {
   const { isAuthenticated, loading } = useAuth();
@@ -35,87 +33,92 @@ const Root = () => {
   return isAuthenticated ? <Dashboard /> : <Navigate to="/sign-in" replace />;
 };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <BrowserRouter>
-      <ThemeProvider>
-        <AuthProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <Routes>
-              {/* Auth routes */}
-              <Route path="/sign-in" element={<SignIn />} />
-              <Route path="/sign-up" element={<SignUp />} />
-              
-              {/* Root route - checks auth and redirects appropriately */}
-              <Route path="/" element={<Root />} />
-              
-              {/* Protected routes */}
-              <Route path="/dashboard" element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } />
-              <Route path="/index" element={
-                <ProtectedRoute>
-                  <Index />
-                </ProtectedRoute>
-              } />
-              <Route path="/students" element={
-                <ProtectedRoute>
-                  <Students />
-                </ProtectedRoute>
-              } />
-              <Route path="/students/:studentId" element={
-                <ProtectedRoute>
-                  <Students />
-                </ProtectedRoute>
-              } />
-              <Route path="/profile" element={
-                <ProtectedRoute>
-                  <UserProfile />
-                </ProtectedRoute>
-              } />
-              <Route path="/events" element={
-                <ProtectedRoute>
-                  <ChapelEvents />
-                </ProtectedRoute>
-              } />
-              <Route path="/gallery" element={
-                <ProtectedRoute>
-                  <Gallery />
-                </ProtectedRoute>
-              } />
-              <Route path="/music" element={
-                <ProtectedRoute>
-                  <Music />
-                </ProtectedRoute>
-              } />
-              <Route path="/prayer-request" element={
-                <ProtectedRoute>
-                  <PrayerRequest />
-                </ProtectedRoute>
-              } />
-              <Route path="/chapel-rules" element={
-                <ProtectedRoute>
-                  <ChapelRules />
-                </ProtectedRoute>
-              } />
-              <Route path="/chaplains" element={
-                <ProtectedRoute>
-                  <Chaplains />
-                </ProtectedRoute>
-              } />
-              
-              {/* Catch-all route */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </TooltipProvider>
-        </AuthProvider>
-      </ThemeProvider>
-    </BrowserRouter>
-  </QueryClientProvider>
-);
+const App = () => {
+  // Create a new QueryClient instance inside the component
+  const queryClient = new QueryClient();
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <ThemeProvider>
+          <AuthProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <Routes>
+                {/* Auth routes */}
+                <Route path="/sign-in" element={<SignIn />} />
+                <Route path="/sign-up" element={<SignUp />} />
+                
+                {/* Root route - checks auth and redirects appropriately */}
+                <Route path="/" element={<Root />} />
+                
+                {/* Protected routes */}
+                <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/index" element={
+                  <ProtectedRoute>
+                    <Index />
+                  </ProtectedRoute>
+                } />
+                <Route path="/students" element={
+                  <ProtectedRoute>
+                    <Students />
+                  </ProtectedRoute>
+                } />
+                <Route path="/students/:studentId" element={
+                  <ProtectedRoute>
+                    <Students />
+                  </ProtectedRoute>
+                } />
+                <Route path="/profile" element={
+                  <ProtectedRoute>
+                    <UserProfile />
+                  </ProtectedRoute>
+                } />
+                <Route path="/events" element={
+                  <ProtectedRoute>
+                    <ChapelEvents />
+                  </ProtectedRoute>
+                } />
+                <Route path="/gallery" element={
+                  <ProtectedRoute>
+                    <Gallery />
+                  </ProtectedRoute>
+                } />
+                <Route path="/music" element={
+                  <ProtectedRoute>
+                    <Music />
+                  </ProtectedRoute>
+                } />
+                <Route path="/prayer-request" element={
+                  <ProtectedRoute>
+                    <PrayerRequest />
+                  </ProtectedRoute>
+                } />
+                <Route path="/chapel-rules" element={
+                  <ProtectedRoute>
+                    <ChapelRules />
+                  </ProtectedRoute>
+                } />
+                <Route path="/chaplains" element={
+                  <ProtectedRoute>
+                    <Chaplains />
+                  </ProtectedRoute>
+                } />
+                
+                {/* Catch-all route */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </TooltipProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
