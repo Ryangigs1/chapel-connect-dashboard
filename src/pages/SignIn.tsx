@@ -1,6 +1,5 @@
-
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
@@ -18,7 +17,15 @@ const SignIn = () => {
   const [resetLoading, setResetLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { signIn, forgotPassword } = useAuth();
+  const location = useLocation();
+  const { signIn, forgotPassword, isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      const from = location.state?.from?.pathname || '/dashboard';
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, navigate, location.state]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,12 +45,8 @@ const SignIn = () => {
         title: "Success",
         description: "You've been signed in successfully",
       });
-      
-      // Navigate to the dashboard after successful sign-in
-      navigate('/dashboard', { replace: true });
     } catch (error) {
       console.error("Sign in error:", error);
-      // Toast is already shown in the AuthProvider
     } finally {
       setLoading(false);
     }
@@ -67,7 +70,6 @@ const SignIn = () => {
       setResetEmail('');
     } catch (error) {
       console.error("Password reset error:", error);
-      // Toast is already shown in the AuthProvider
     } finally {
       setResetLoading(false);
     }
@@ -75,7 +77,6 @@ const SignIn = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4 relative overflow-hidden">
-      {/* Animated background elements */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-primary/5 to-secondary/5"></div>
         <div className="absolute top-1/4 -left-10 w-40 h-40 rounded-full bg-primary/10 blur-3xl animate-pulse-subtle"></div>
@@ -168,7 +169,6 @@ const SignIn = () => {
         </form>
       </div>
       
-      {/* Forgot password dialog */}
       <Dialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -207,7 +207,6 @@ const SignIn = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Faratech.inc watermark */}
       <div className="fixed bottom-4 right-4 text-sm text-muted-foreground/60 font-medium animate-fade-in [animation-delay:1s]">
         Faratech.inc
       </div>

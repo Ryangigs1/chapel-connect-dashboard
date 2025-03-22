@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,7 +16,13 @@ const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { signUp } = useAuth();
+  const { signUp, isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,16 +63,13 @@ const SignUp = () => {
         duration: 5000
       });
       
-      // Clear form
       setName('');
       setEmail('');
       setPassword('');
       setConfirmPassword('');
       
-      // Redirect to sign-in page
       navigate('/sign-in');
     } catch (error: any) {
-      // Error is handled in the AuthProvider
       console.error("Sign up error:", error);
     } finally {
       setLoading(false);
