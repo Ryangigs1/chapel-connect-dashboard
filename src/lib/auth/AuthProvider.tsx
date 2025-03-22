@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, useEffect } from 'react';
 import { initSecurity } from '@/utils/encryption';
 import { AuthContextType, User } from './types';
@@ -17,7 +16,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
-  // Initialize security measures
   useEffect(() => {
     if (process.env.NODE_ENV === 'production') {
       initSecurity();
@@ -25,11 +23,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    // Check if user is stored in localStorage
     const storedUser = getUserFromLocalStorage();
     if (storedUser) {
       setUser(storedUser);
-      // Show welcome back message
       const lastVisit = localStorage.getItem('mtu_last_visit');
       const now = new Date().toISOString();
       
@@ -37,7 +33,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const lastDate = new Date(lastVisit);
         const today = new Date();
         
-        // If last visit was not today
         if (lastDate.toDateString() !== today.toDateString()) {
           setTimeout(() => {
             showSuccessToast("Welcome back!", `Good to see you again, ${storedUser.name}!`);
@@ -49,18 +44,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
     setLoading(false);
     
-    // Set a timeout to show we're done with initial load
     setTimeout(() => {
       setInitialLoadComplete(true);
     }, 300);
   }, []);
-  
-  // Sign in function - simplified without admin logic
+
   const signIn = async (email: string, password: string): Promise<void> => {
-    // Simulate API request delay
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    // Find user by email
     const foundUser = mockUsers.find(u => u.email === email);
     
     if (!foundUser || foundUser.password !== password) {
@@ -68,68 +59,50 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       throw new Error('Invalid credentials');
     }
     
-    // Create user object without password
     const { password: _, ...userWithoutPassword } = foundUser;
     
-    // Store user in localStorage
     storeUserInLocalStorage(userWithoutPassword);
     
-    // Update state
     setUser(userWithoutPassword);
     
-    // Store last visit time
     localStorage.setItem('mtu_last_visit', new Date().toISOString());
     
     showSuccessToast("Welcome back!", `Signed in as ${userWithoutPassword.name}`);
   };
-  
-  // Sign up function
+
   const signUp = async (email: string, password: string, name: string): Promise<void> => {
-    // Simulate API request delay
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    // Check if user already exists
     if (mockUsers.some(u => u.email === email)) {
       showErrorToast("Registration failed", "Email already in use.");
       throw new Error('Email already in use');
     }
     
-    // Create new user
     const newUser = {
       id: `${mockUsers.length + 1}`,
       name,
       email,
       password,
       role: 'user',
-      avatarUrl: '/avatar-default.png', // Adding default avatar URL
+      avatarUrl: '/avatar-default.png',
     };
     
-    // Add to mock users (this is just for demo)
     mockUsers.push(newUser);
     
-    // Create user object without password
     const { password: _, ...userWithoutPassword } = newUser;
     
-    // Store user in localStorage
     storeUserInLocalStorage(userWithoutPassword);
     
-    // Update state
     setUser(userWithoutPassword);
     
-    // Store last visit time
     localStorage.setItem('mtu_last_visit', new Date().toISOString());
     
     showSuccessToast("Registration successful", `Welcome, ${name}!`);
   };
-  
-  // Sign out function
+
   const signOut = async (): Promise<void> => {
-    // Remove user from localStorage
     localStorage.removeItem('mtu_user');
-    
-    // Update state
     setUser(null);
-    
     showSuccessToast("Signed out", "You have been signed out successfully.");
   };
 

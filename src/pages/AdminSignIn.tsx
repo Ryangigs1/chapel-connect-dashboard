@@ -37,10 +37,20 @@ const AdminSignIn = () => {
       return;
     }
 
+    // Verify admin key first
+    if (adminKey !== ADMIN_SECRET_KEY) {
+      toast({
+        title: "Access Denied",
+        description: "Invalid Admin Security Key",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       setLoading(true);
-      // Pass adminKey to signIn method for verification
-      await signIn(email, password, adminKey);
+      // Now we call signIn with only the expected two arguments
+      await signIn(email, password);
       
       // Check if email contains admin to verify it's an admin account
       if (!email.includes('admin')) {
