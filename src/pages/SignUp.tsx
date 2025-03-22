@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -66,25 +67,8 @@ const SignUp = () => {
       // Redirect to sign-in page
       navigate('/sign-in');
     } catch (error: any) {
+      // Error is handled in the AuthProvider
       console.error("Sign up error:", error);
-      let errorMessage = "Registration failed. Please try again.";
-      
-      // Map Firebase error messages to user-friendly messages
-      if (error.code === 'auth/email-already-in-use') {
-        errorMessage = "This email is already registered. Please sign in instead.";
-      } else if (error.code === 'auth/invalid-email') {
-        errorMessage = "Please provide a valid email address.";
-      } else if (error.code === 'auth/weak-password') {
-        errorMessage = "Password is too weak. Please use a stronger password.";
-      } else if (error.message) {
-        errorMessage = `Registration failed: ${error.message}`;
-      }
-      
-      toast({
-        title: "Registration Failed",
-        description: errorMessage,
-        variant: "destructive"
-      });
     } finally {
       setLoading(false);
     }

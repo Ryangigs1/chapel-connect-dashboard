@@ -2,18 +2,19 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { AuthContextType, User } from './types';
-import { 
-  showSuccessToast,
-  showErrorToast
-} from './utils';
+import { showSuccessToast, showErrorToast } from './utils';
 import { auth } from '../firebase';
 import { 
   signInWithEmail, 
   signUpWithEmail, 
   signOutUser, 
-  formatUser 
+  formatUser,
+  uploadProfilePicture,
+  updateUserProfile,
+  resetPassword
 } from '../firebase/auth';
 
+// Create the Auth Context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -77,6 +78,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         errorMessage = "Invalid credentials. Please check your email and password.";
       } else if (error.code === 'auth/too-many-requests') {
         errorMessage = "Too many failed login attempts. Please try again later.";
+      } else if (error.code === 'auth/user-disabled') {
+        errorMessage = "This account has been disabled. Please contact support.";
       }
       
       showErrorToast("Authentication failed", errorMessage);
@@ -96,7 +99,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       showSuccessToast("Registration successful", `Welcome, ${name}!`);
     } catch (error: any) {
       console.error("Sign up error:", error);
-      let errorMessage = "Email already in use or invalid.";
+      let errorMessage = "Registration failed. Please try again.";
       
       if (error.code === 'auth/email-already-in-use') {
         errorMessage = "This email is already registered. Please sign in instead.";
@@ -124,6 +127,59 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.error("Error signing out:", error);
     }
   };
+  
+  const updateProfile = async (data: { name?: string; email?: string }): Promise<void> => {
+    if (!user) throw new Error("No user is signed in");
+    
+    try {
+      setLoading(true);
+      await updateUserProfile(user.id, data);
+      showSuccessToast("Profile updated", "Your profile has been updated successfully.");
+    } catch (error) {
+      showErrorToast("Error updating profile", "Please try again later.");
+      console.error("Error updating profile:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const uploadAvatar = async (file: File): Promise<string> => {
+    if (!user) throw new Error("No user is signed in");
+    
+    try {
+      setLoading(true);
+      const url = await uploadProfilePicture(user.id, file);
+      setUser(prev => prev ? { ...prev, avatarUrl: url } : null);
+      showSuccessToast("Avatar updated", "Your profile picture has been updated successfully.");
+      return url;
+    } catch (error) {
+      showErrorToast("Error uploading avatar", "Please try again later.");
+      console.error("Error uploading avatar:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const forgotPassword = async (email: string): Promise<void> => {
+    try {
+      setLoading(true);
+      await resetPassword(email);
+      showSuccessToast("Password reset email sent", "Please check your email to reset your password.");
+    } catch (error: any) {
+      let message = "Failed to send password reset email.";
+      if (error.code === 'auth/user-not-found') {
+        message = "No account found with this email.";
+      } else if (error.code === 'auth/invalid-email') {
+        message = "Invalid email address.";
+      }
+      showErrorToast("Password reset failed", message);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const value = {
     user,
@@ -131,6 +187,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     signIn,
     signUp,
     signOut,
+    updateProfile,
+    uploadAvatar,
+    forgotPassword,
     isAuthenticated: !!user,
   };
 

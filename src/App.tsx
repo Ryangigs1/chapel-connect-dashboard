@@ -21,6 +21,7 @@ import Music from "./pages/Music";
 import PrayerRequest from "./pages/PrayerRequest";
 import ChapelRules from "./pages/ChapelRules";
 import Chaplains from "./pages/Chaplains";
+import { useState } from "react";
 
 // Root component to check authentication state
 const Root = () => {
@@ -34,13 +35,13 @@ const Root = () => {
 };
 
 const App = () => {
-  // Create a new QueryClient instance inside the component
-  const queryClient = new QueryClient();
+  // Create a new QueryClient instance as a state variable to avoid re-initialization
+  const [queryClient] = useState(() => new QueryClient());
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <ThemeProvider>
+    <BrowserRouter>
+      <ThemeProvider>
+        <QueryClientProvider client={queryClient}>
           <AuthProvider>
             <TooltipProvider>
               <Toaster />
@@ -115,9 +116,9 @@ const App = () => {
               </Routes>
             </TooltipProvider>
           </AuthProvider>
-        </ThemeProvider>
-      </BrowserRouter>
-    </QueryClientProvider>
+        </QueryClientProvider>
+      </ThemeProvider>
+    </BrowserRouter>
   );
 };
 

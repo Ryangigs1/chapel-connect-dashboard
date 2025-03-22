@@ -1,24 +1,24 @@
 
 import { useState } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { Eye, EyeOff, LockKeyhole, Mail } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 
 const SignIn = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const location = useLocation();
-  const { signIn } = useAuth();
-
-  // Get the intended destination from location state, or default to home
-  const from = location.state?.from?.pathname || '/';
+  const { signIn, forgotPassword } = useAuth();
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,13 +39,37 @@ const SignIn = () => {
         description: "You've been signed in successfully",
       });
       
-      // Navigate to the home page after successful sign-in
-      navigate('/', { replace: true });
+      // Navigate to the dashboard after successful sign-in
+      navigate('/dashboard', { replace: true });
     } catch (error) {
       console.error("Sign in error:", error);
       // Toast is already shown in the AuthProvider
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetEmail) {
+      toast({
+        title: "Error",
+        description: "Please enter your email address",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      setResetLoading(true);
+      await forgotPassword(resetEmail);
+      setShowForgotPassword(false);
+      setResetEmail('');
+    } catch (error) {
+      console.error("Password reset error:", error);
+      // Toast is already shown in the AuthProvider
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -122,9 +146,13 @@ const SignIn = () => {
               </Link>
             </div>
             <div className="text-sm">
-              <a href="#" className="text-primary hover:text-primary/80 transition-colors">
+              <button 
+                type="button" 
+                onClick={() => setShowForgotPassword(true)}
+                className="text-primary hover:text-primary/80 transition-colors"
+              >
                 Forgot password?
-              </a>
+              </button>
             </div>
           </div>
           
@@ -139,6 +167,45 @@ const SignIn = () => {
           </div>
         </form>
       </div>
+      
+      {/* Forgot password dialog */}
+      <Dialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Reset your password</DialogTitle>
+            <DialogDescription>
+              Enter your email address and we'll send you a link to reset your password.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleForgotPassword}>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Input
+                  id="reset-email"
+                  type="email"
+                  placeholder="Email address"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowForgotPassword(false)}
+                disabled={resetLoading}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={resetLoading}>
+                {resetLoading ? "Sending..." : "Send reset link"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
       
       {/* Faratech.inc watermark */}
       <div className="fixed bottom-4 right-4 text-sm text-muted-foreground/60 font-medium animate-fade-in [animation-delay:1s]">
