@@ -2,7 +2,6 @@
 import { toast } from '@/components/ui/use-toast';
 import { encryptData, decryptData } from '@/utils/encryption';
 import { User } from './types';
-import { ADMIN_SECRET_KEY } from './mockUsers';
 
 export const storeUserInLocalStorage = (user: Omit<User, 'password'>): void => {
   const encryptedUser = encryptData(user);
@@ -29,17 +28,6 @@ export const getUserFromLocalStorage = (): User | null => {
     // Invalid stored user data, remove it
     localStorage.removeItem('mtu_user');
     return null;
-  }
-};
-
-export const verifyAdminAccess = (user: User | null, token: string): boolean => {
-  if (!user || user.role !== 'admin') return false;
-  
-  try {
-    // In a real app, this would be a server-side verification
-    return token === ADMIN_SECRET_KEY;
-  } catch (error) {
-    return false;
   }
 };
 

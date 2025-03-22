@@ -10,12 +10,9 @@ import { ThemeProvider } from "./lib/theme";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Index from "./pages/Index";
 import Students from "./pages/Students";
-import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
-import AdminSignIn from "./pages/AdminSignIn";
-import AttendanceDetails from "./pages/AttendanceDetails";
 import UserProfile from "./pages/UserProfile";
 import ChapelEvents from "./pages/ChapelEvents";
 import Dashboard from "./pages/Dashboard";
@@ -50,7 +47,6 @@ const App = () => (
               {/* Auth routes */}
               <Route path="/sign-in" element={<SignIn />} />
               <Route path="/sign-up" element={<SignUp />} />
-              <Route path="/admin/login" element={<AdminSignIn />} />
               
               {/* Root route - checks auth and redirects appropriately */}
               <Route path="/" element={<Root />} />
@@ -74,16 +70,6 @@ const App = () => (
               <Route path="/students/:studentId" element={
                 <ProtectedRoute>
                   <Students />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin" element={
-                <ProtectedRoute isAdmin={true}>
-                  <Admin />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/attendance/:attendanceId" element={
-                <ProtectedRoute isAdmin={true}>
-                  <AttendanceDetails />
                 </ProtectedRoute>
               } />
               <Route path="/profile" element={

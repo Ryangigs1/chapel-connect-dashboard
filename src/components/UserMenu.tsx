@@ -102,12 +102,10 @@ const UserMenu = () => {
           <span>Gallery</span>
         </DropdownMenuItem>
         
-        {user?.role === 'admin' && (
-          <DropdownMenuItem className="cursor-pointer" onClick={() => navigateTo('/admin')}>
-            <Users className="mr-2 h-4 w-4" />
-            <span>Admin Panel</span>
-          </DropdownMenuItem>
-        )}
+        <DropdownMenuItem className="cursor-pointer" onClick={() => navigateTo('/students')}>
+          <Users className="mr-2 h-4 w-4" />
+          <span>Students</span>
+        </DropdownMenuItem>
         
         <DropdownMenuItem className="cursor-pointer" onClick={() => navigateTo('/index')}>
           <BookOpen className="mr-2 h-4 w-4" />

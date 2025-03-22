@@ -2,11 +2,10 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { initSecurity } from '@/utils/encryption';
 import { AuthContextType, User } from './types';
-import { mockUsers, ADMIN_SECRET_KEY } from './mockUsers';
+import { mockUsers } from './mockUsers';
 import { 
   storeUserInLocalStorage, 
   getUserFromLocalStorage, 
-  verifyAdminAccess,
   showSuccessToast,
   showErrorToast
 } from './utils';
@@ -56,8 +55,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }, 300);
   }, []);
   
-  // Sign in function - modified to support admin key
-  const signIn = async (email: string, password: string, adminKey?: string): Promise<void> => {
+  // Sign in function - simplified without admin logic
+  const signIn = async (email: string, password: string): Promise<void> => {
     // Simulate API request delay
     await new Promise(resolve => setTimeout(resolve, 1000));
     
@@ -67,18 +66,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (!foundUser || foundUser.password !== password) {
       showErrorToast("Authentication failed", "Invalid email or password.");
       throw new Error('Invalid credentials');
-    }
-    
-    // If user is admin and adminKey is provided, verify it
-    if (foundUser.role === 'admin' && adminKey) {
-      if (adminKey !== ADMIN_SECRET_KEY) {
-        showErrorToast("Admin verification failed", "Invalid admin key provided.");
-        throw new Error('Invalid admin key');
-      }
-    } else if (foundUser.role === 'admin' && !adminKey) {
-      // If user is admin but no admin key provided
-      showErrorToast("Admin verification failed", "Admin key required for administrator access.");
-      throw new Error('Admin key required');
     }
     
     // Create user object without password
@@ -153,7 +140,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     signUp,
     signOut,
     isAuthenticated: !!user,
-    verifyAdminAccess: (token: string) => verifyAdminAccess(user, token),
   };
 
   return (
