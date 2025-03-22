@@ -243,14 +243,14 @@ export const getRecentComments = async (limitCount: number = 10): Promise<any[]>
     const snapshot = await getDocs(commentsQuery);
     const comments: any[] = [];
     
-    for (const doc of snapshot.docs) {
-      const commentData = doc.data();
-      // Fix: Create a proper document reference using userId from commentData
+    for (const docSnapshot of snapshot.docs) {
+      const commentData = docSnapshot.data();
+      // Create a proper document reference using userId from commentData
       const userDocRef = doc(db, "users", commentData.userId);
       const userDoc = await getDoc(userDocRef);
       
       comments.push({
-        id: doc.id,
+        id: docSnapshot.id,
         ...commentData,
         user: userDoc.exists() ? userDoc.data() : { name: "Unknown User" }
       });
