@@ -1,11 +1,10 @@
-
 // Firebase configuration
 export const firebaseConfig = {
-  apiKey: "AIzaSyBcD7nFx3F5ANXgIUQhRQk_FG_KO9CYXGA",
-  authDomain: "chapel-connect-app.firebaseapp.com",
-  projectId: "chapel-connect-app",
-  storageBucket: "chapel-connect-app.appspot.com",
-  messagingSenderId: "723423012341",
-  appId: "1:723423012341:web:9a56f2a1c723dfc5e3a9b1",
-  measurementId: "G-7ZDFJ7B31K"
+  apiKey: "AIzaSyBr8LZ1rzODvzUy4thQfQY8fCEIhYCZDdM", // Web API Key
+  authDomain: "lecture-apps.firebaseapp.com", // Project ID with firebaseapp.com
+  projectId: "lecture-apps", // Project ID
+  storageBucket: "lecture-apps.appspot.com", // Project ID with appspot.com
+  messagingSenderId: "852126257336", // Project Number
+  appId: "1:852126257336:web:your-app-specific-id", // Replace with actual App ID from Firebase
+  measurementId: "G-7ZDFJ7B31K" // Keep this if using Google Analytics
 };
