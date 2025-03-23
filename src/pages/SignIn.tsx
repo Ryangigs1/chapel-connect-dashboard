@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -20,9 +21,12 @@ const SignIn = () => {
   const location = useLocation();
   const { signIn, forgotPassword, isAuthenticated } = useAuth();
 
+  // Handle redirect when authenticated
   useEffect(() => {
     if (isAuthenticated) {
+      // Get the intended destination from location state, or default to dashboard
       const from = location.state?.from?.pathname || '/dashboard';
+      console.log("Redirecting to:", from);
       navigate(from, { replace: true });
     }
   }, [isAuthenticated, navigate, location.state]);
@@ -41,10 +45,7 @@ const SignIn = () => {
     try {
       setLoading(true);
       await signIn(email, password);
-      toast({
-        title: "Success",
-        description: "You've been signed in successfully",
-      });
+      // The redirect will be handled by the useEffect above
     } catch (error) {
       console.error("Sign in error:", error);
     } finally {

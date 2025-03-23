@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,7 @@ const SignUp = () => {
   const navigate = useNavigate();
   const { signUp, isAuthenticated } = useAuth();
 
+  // If already authenticated, redirect to dashboard
   useEffect(() => {
     if (isAuthenticated) {
       navigate('/dashboard', { replace: true });
@@ -68,6 +70,7 @@ const SignUp = () => {
       setPassword('');
       setConfirmPassword('');
       
+      // After successful signup, redirect to sign-in page
       navigate('/sign-in');
     } catch (error: any) {
       console.error("Sign up error:", error);

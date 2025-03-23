@@ -66,7 +66,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       localStorage.setItem('mtu_last_visit', new Date().toISOString());
       
       showSuccessToast("Welcome back!", `Signed in as ${user.name}`);
-      // We won't navigate here - we'll do that in the SignIn component
+      // We're not handling navigation here anymore - components will do that
     } catch (error: any) {
       console.error("Sign in error:", error);
       let errorMessage = "Invalid email or password.";
@@ -98,7 +98,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       localStorage.setItem('mtu_last_visit', new Date().toISOString());
       
       showSuccessToast("Registration successful", `Welcome, ${name}!`);
-      // We won't navigate here - we'll do that in the SignUp component
+      // We're not handling navigation here anymore - components will do that
     } catch (error: any) {
       console.error("Sign up error:", error);
       let errorMessage = "Registration failed. Please try again.";
