@@ -19,10 +19,7 @@ import {
   Settings, 
   LogOut, 
   User, 
-  HelpCircle, 
-  Moon, 
-  Sun, 
-  LifeBuoy, 
+  HelpCircle,
   Bookmark, 
   Image, 
   Calendar, 
@@ -30,14 +27,14 @@ import {
   Users, 
   Bell
 } from 'lucide-react';
-import { useTheme } from '@/lib/theme';
 import { ThemeToggle } from './ThemeToggle';
+import { useToast } from '@/components/ui/use-toast';
 
 const UserMenu = () => {
   const { user, signOut } = useAuth();
-  const { theme, setTheme } = useTheme();
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   // Function to get user initials for the avatar fallback
   const getUserInitials = () => {
@@ -59,8 +56,27 @@ const UserMenu = () => {
     setOpen(false);
   };
 
+  // Show notification for Google users if they're missing profile data
+  const checkProfileCompletion = () => {
+    if (user?.providerData === 'google.com' && (!user.department || !user.level)) {
+      toast({
+        title: "Profile Incomplete",
+        description: "Please complete your profile with your department and level information.",
+        duration: 5000,
+      });
+    }
+  };
+
+  // Check profile on menu open
+  const handleOpenChange = (isOpen: boolean) => {
+    if (isOpen) {
+      checkProfileCompletion();
+    }
+    setOpen(isOpen);
+  };
+
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
+    <DropdownMenu open={open} onOpenChange={handleOpenChange}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
           <Avatar className="h-10 w-10 border hover:ring-2 hover:ring-primary/10 transition-all">
@@ -77,6 +93,14 @@ const UserMenu = () => {
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none text-foreground">{user?.name}</p>
             <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
+            {user?.department && (
+              <p className="text-xs leading-none text-muted-foreground mt-1">
+                {user.department}, {user.level || 'Level not set'}
+              </p>
+            )}
+            {user?.providerData === 'google.com' && (!user.department || !user.level) && (
+              <p className="text-xs text-amber-500 mt-1">Profile incomplete</p>
+            )}
           </div>
         </DropdownMenuLabel>
         

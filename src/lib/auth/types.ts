@@ -5,6 +5,9 @@ export interface User {
   email: string;
   role: string;
   avatarUrl?: string;
+  providerData?: string;
+  department?: string;
+  level?: string;
 }
 
 export interface AuthContextType {
@@ -12,9 +15,9 @@ export interface AuthContextType {
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, name: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (data: { name?: string; email?: string }) => Promise<void>;
-  uploadAvatar: (file: File) => Promise<string>;
   forgotPassword: (email: string) => Promise<void>;
   isAuthenticated: boolean;
 }

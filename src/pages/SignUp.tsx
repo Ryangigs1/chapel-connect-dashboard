@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -5,29 +6,8 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { toast as sonnerToast } from 'sonner';
 import { Eye, EyeOff, LockKeyhole, Mail, User } from 'lucide-react';
-import { getAuth, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-
-const useAuth = () => {
-  const auth = getAuth();
-
-  const signUp = async (email: string, password: string, name: string) => {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-
-    // Update the user's display name
-    await updateProfile(user, { displayName: name });
-
-    return user;
-  };
-
-  const isAuthenticated = !!auth.currentUser;
-
-  return {
-    signUp,
-    isAuthenticated,
-    // Other auth functions...
-  };
-};
+import { useAuth } from '@/lib/auth';
+import { Separator } from "@/components/ui/separator";
 
 const SignUp = () => {
   const [name, setName] = useState('');
@@ -35,10 +15,11 @@ const SignUp = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { signUp, isAuthenticated } = useAuth();
+  const { signUp, signInWithGoogle, isAuthenticated } = useAuth();
 
   // If already authenticated, redirect to dashboard
   useEffect(() => {
@@ -107,6 +88,23 @@ const SignUp = () => {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    try {
+      setGoogleLoading(true);
+      await signInWithGoogle();
+      // Redirect will be handled by the useEffect
+    } catch (error) {
+      console.error("Google sign in error:", error);
+      toast({
+        title: "Google sign in failed",
+        description: "Could not sign in with Google. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4 relative overflow-hidden">
       <div className="absolute inset-0 -z-10">
@@ -126,9 +124,36 @@ const SignUp = () => {
           </p>
         </div>
 
+        {/* Google Sign-in Button */}
+        <div className="animate-fade-up [animation-delay:350ms]">
+          <Button 
+            type="button" 
+            variant="outline" 
+            className="w-full flex items-center justify-center gap-2"
+            onClick={handleGoogleSignIn}
+            disabled={googleLoading}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512" className="h-4 w-4">
+              <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z" />
+            </svg>
+            {googleLoading ? "Signing in..." : "Sign up with Google"}
+          </Button>
+        </div>
+        
+        <div className="relative animate-fade-up [animation-delay:400ms]">
+          <div className="absolute inset-0 flex items-center">
+            <Separator className="w-full" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-card px-2 text-muted-foreground">
+              Or continue with
+            </span>
+          </div>
+        </div>
+
         <form onSubmit={handleSignUp} className="mt-8 space-y-6">
           <div className="space-y-4">
-            <div className="relative animate-fade-up [animation-delay:400ms]">
+            <div className="relative animate-fade-up [animation-delay:450ms]">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <User className="h-5 w-5 text-muted-foreground" />
               </div>
@@ -226,7 +251,7 @@ const SignUp = () => {
             className="w-full animate-fade-up [animation-delay:900ms]"
             disabled={loading}
           >
-            {loading ? "Creating account..." : "Sign up"}
+            {loading ? "Creating account..." : "Sign up with Email"}
           </Button>
         </form>
       </div>

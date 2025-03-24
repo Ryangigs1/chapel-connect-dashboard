@@ -9,9 +9,9 @@ import {
   signUpWithEmail, 
   signOutUser, 
   formatUser,
-  uploadProfilePicture,
   updateUserProfile,
-  resetPassword
+  resetPassword,
+  signInWithGoogle as firebaseSignInWithGoogle
 } from '../firebase/auth';
 
 // Create the Auth Context
@@ -66,7 +66,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       localStorage.setItem('mtu_last_visit', new Date().toISOString());
       
       showSuccessToast("Welcome back!", `Signed in as ${user.name}`);
-      // We're not handling navigation here anymore - components will do that
     } catch (error: any) {
       console.error("Sign in error:", error);
       let errorMessage = "Invalid email or password.";
@@ -90,6 +89,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const signInWithGoogle = async (): Promise<void> => {
+    try {
+      setLoading(true);
+      const user = await firebaseSignInWithGoogle();
+      
+      localStorage.setItem('mtu_last_visit', new Date().toISOString());
+      
+      showSuccessToast("Welcome!", `Signed in as ${user.name}`);
+    } catch (error: any) {
+      console.error("Google sign in error:", error);
+      
+      showErrorToast("Authentication failed", "Failed to sign in with Google. Please try again.");
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const signUp = async (email: string, password: string, name: string): Promise<void> => {
     try {
       setLoading(true);
@@ -98,7 +115,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       localStorage.setItem('mtu_last_visit', new Date().toISOString());
       
       showSuccessToast("Registration successful", `Welcome, ${name}!`);
-      // We're not handling navigation here anymore - components will do that
     } catch (error: any) {
       console.error("Sign up error:", error);
       let errorMessage = "Registration failed. Please try again.";
@@ -146,24 +162,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
   
-  const uploadAvatar = async (file: File): Promise<string> => {
-    if (!user) throw new Error("No user is signed in");
-    
-    try {
-      setLoading(true);
-      const url = await uploadProfilePicture(user.id, file);
-      setUser(prev => prev ? { ...prev, avatarUrl: url } : null);
-      showSuccessToast("Avatar updated", "Your profile picture has been updated successfully.");
-      return url;
-    } catch (error) {
-      showErrorToast("Error uploading avatar", "Please try again later.");
-      console.error("Error uploading avatar:", error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-  
   const forgotPassword = async (email: string): Promise<void> => {
     try {
       setLoading(true);
@@ -188,9 +186,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     loading,
     signIn,
     signUp,
+    signInWithGoogle,
     signOut,
     updateProfile,
-    uploadAvatar,
     forgotPassword,
     isAuthenticated: !!user,
   };
