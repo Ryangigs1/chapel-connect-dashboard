@@ -41,8 +41,30 @@ export const formatUser = (user: FirebaseUser, additionalData?: any): User => {
     email: user.email || "",
     avatarUrl: user.photoURL || "/avatar-default.png",
     role: additionalData?.role || "user",
-    providerData: user.providerData && user.providerData[0] ? user.providerData[0].providerId : "password"
+    providerData: user.providerData && user.providerData[0] ? user.providerData[0].providerId : "password",
+    department: additionalData?.department || undefined,
+    level: additionalData?.level || undefined
   };
+};
+
+// Update user profile data in Firestore
+export const updateUserProfile = async (userId: string, data: { name?: string; email?: string }): Promise<void> => {
+  try {
+    // Update Firestore document
+    const userRef = doc(db, "users", userId);
+    await updateDoc(userRef, {
+      ...data,
+      updatedAt: new Date().toISOString()
+    });
+    
+    // If name is provided, also update the displayName in Firebase Auth
+    if (data.name && auth.currentUser) {
+      await updateProfile(auth.currentUser, { displayName: data.name });
+    }
+  } catch (error) {
+    console.error("Error updating user profile:", error);
+    throw error;
+  }
 };
 
 // Google Sign In

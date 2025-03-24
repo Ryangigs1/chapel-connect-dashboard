@@ -1,6 +1,6 @@
 
 export interface User {
-  id: string;
+  id: string;  // Firebase UID, this is what we use instead of 'uid'
   name: string;
   email: string;
   role: string;

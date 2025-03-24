@@ -126,7 +126,6 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   const [userData, setUserData] = useState<any>(null);
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Get today's day name
@@ -196,25 +195,11 @@ const Dashboard = () => {
     }
   };
 
-  const handleAvatarUpload = async () => {
-    if (!avatarFile || !user) return;
-
-    try {
-      const avatarUrl = await uploadAvatar(avatarFile, user.uid);
-      await saveUserData(user.uid, { ...userData, avatarUrl });
-      setUserData((prev: any) => ({ ...prev, avatarUrl }));
-      alert("Avatar updated successfully!");
-    } catch (error) {
-      console.error("Error updating avatar:", error);
-      alert("Failed to update avatar.");
-    }
-  };
-
   useEffect(() => {
     const fetchData = async () => {
       if (user) {
         try {
-          const data = await fetchUserData(user.uid);
+          const data = await fetchUserData(user.id);
           setUserData(data);
         } catch (error) {
           console.error("Error fetching user data:", error);
@@ -244,6 +229,7 @@ const Dashboard = () => {
         <div className="grid md:grid-cols-3 gap-6">
           <div className="md:col-span-2 space-y-6">
             <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab} className="animate-fade-up [animation-delay:200ms]">
+              
               <TabsList className="grid grid-cols-5 mb-6">
                 <TabsTrigger value="overview" className="text-xs sm:text-sm">
                   Overview
@@ -542,25 +528,22 @@ const Dashboard = () => {
                     ) : userData ? (
                       <div className="space-y-4">
                         <div className="flex flex-col items-center">
-                          <img
-                            src={userData.avatarUrl || "/default-avatar.png"}
-                            alt="User Avatar"
-                            className="w-24 h-24 rounded-full object-cover"
-                          />
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
-                            className="mt-2"
-                          />
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={handleAvatarUpload}
-                            disabled={!avatarFile}
-                          >
-                            Upload Avatar
-                          </Button>
+                          {user?.providerData === "google.com" ? (
+                            <img
+                              src={user.avatarUrl || "/default-avatar.png"}
+                              alt="User Avatar"
+                              className="w-24 h-24 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center text-primary text-2xl font-bold">
+                              {user?.name?.charAt(0) || 'U'}
+                            </div>
+                          )}
+                          <p className="mt-2 text-sm text-muted-foreground">
+                            {user?.providerData === "google.com" 
+                              ? "Profile photo synced from Google" 
+                              : "Avatar shows first letter of your name"}
+                          </p>
                         </div>
                         <div>
                           <h3 className="font-medium">Name</h3>
@@ -570,6 +553,21 @@ const Dashboard = () => {
                           <h3 className="font-medium">Email</h3>
                           <p>{userData.email}</p>
                         </div>
+                        <div>
+                          <h3 className="font-medium">Department</h3>
+                          <p>{userData.department || "Not set"}</p>
+                        </div>
+                        <div>
+                          <h3 className="font-medium">Level</h3>
+                          <p>{userData.level || "Not set"}</p>
+                        </div>
+                        {user?.providerData === "google.com" && (!userData.department || !userData.level) && (
+                          <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
+                            <p className="text-amber-700 text-sm">
+                              Please complete your profile by adding your department and level information.
+                            </p>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <p>No user data found.</p>
