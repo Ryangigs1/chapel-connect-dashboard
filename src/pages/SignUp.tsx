@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -97,7 +96,7 @@ const SignUp = () => {
   const handleGoogleSignIn = async () => {
     try {
       setGoogleLoading(true);
-      await signInWithGoogle();
+      await signInWithGoogle(); // Ensure this function is correctly implemented in your `useAuth` hook
       // Redirect will be handled by the useEffect
     } catch (error) {
       console.error("Google sign in error:", error);

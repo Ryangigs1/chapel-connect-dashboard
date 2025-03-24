@@ -48,7 +48,25 @@ const UserProfile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  const [userData, setUserData] = useState<any>(null);
+  interface UserData {
+    phone?: string;
+    department?: string;
+    level?: string;
+    matricNumber?: string;
+    address?: string;
+    emergencyContact?: string;
+    bio?: string;
+    settings?: {
+      emailNotifications: boolean;
+      serviceReminders: boolean;
+      absenceAlerts: boolean;
+      showProfileInDirectory: boolean;
+      allowChaplainContact: boolean;
+    };
+    absences?: number;
+  }
+
+  const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     name: '',
@@ -385,41 +403,10 @@ const UserProfile = () => {
                 
                 <CardContent className="pt-4">
                   <div className="space-y-4">
-                    {isStudent && (
-                      <div className="flex items-center gap-3">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                          <p className="text-sm text-muted-foreground">Level</p>
-                          <p className="font-medium text-foreground">{formData.level || 'Not set'}</p>
-                        </div>
-                      </div>
-                    )}
-                    
-                    <div className="flex items-center gap-3">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Email</p>
-                        <p className="font-medium text-foreground">{user?.email}</p>
-                      </div>
-                    </div>
-                    
-                    {isStudent && (
-                      <div className="flex items-center gap-3">
-                        <MapPin className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                          <p className="text-sm text-muted-foreground">Department</p>
-                          <p className="font-medium text-foreground">{formData.department || 'Not set'}</p>
-                        </div>
-                      </div>
-                    )}
-                    
-                    <div className="flex items-center gap-3">
-                      <Shield className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Account Type</p>
-                        <p className="font-medium text-foreground capitalize">{user?.role}</p>
-                      </div>
-                    </div>
+                    {renderUserDetail('Level', formData.level || 'Not set', Calendar)}
+                    {renderUserDetail('Email', user?.email, Mail)}
+                    {isStudent && renderUserDetail('Department', formData.department || 'Not set', MapPin)}
+                    {renderUserDetail('Account Type', user?.role, Shield)}
                   </div>
                 </CardContent>
               </Card>
@@ -447,6 +434,47 @@ const UserProfile = () => {
                   )}
                   <TabsTrigger value="settings" className="text-foreground">Account Settings</TabsTrigger>
                 </TabsList>
-                
+                <TabsContent value="profile">
+                  <div>
+                    {/* Add content for the Profile Info tab here */}
+                    <p>Profile information goes here.</p>
+                  </div>
+                </TabsContent>
+                {isStudent && (
+                  <TabsContent value="chapel">
+                    <div>
+                      {/* Add content for the Chapel Record tab here */}
+                      <p>Chapel record information goes here.</p>
+                    </div>
+                  </TabsContent>
+                )}
+                <TabsContent value="settings">
+                  <div>
+                    {/* Add content for the Account Settings tab here */}
+                    <p>Account settings information goes here.</p>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </div>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+};
+
+export default UserProfile;
+
+// Helper function to render user details
+const renderUserDetail = (label: string, value: string, Icon: React.ComponentType<{ className?: string }>) => (
+  <div className="flex items-center gap-3">
+    <Icon className="h-4 w-4 text-muted-foreground" />
+    <div>
+      <p className="text-sm text-muted-foreground">{label}</p>
+      <p className="font-medium text-foreground">{value}</p>
+    </div>
+  </div>
+);
+
 
 
