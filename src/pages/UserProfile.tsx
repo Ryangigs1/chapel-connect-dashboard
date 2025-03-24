@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -36,7 +37,6 @@ import { useToast } from '@/components/ui/use-toast';
 import Navbar from '@/components/Navbar';
 import { useAuth } from '@/lib/auth';
 import { useTheme } from '@/lib/theme';
-import { mockStudents } from '@/utils/mockData';
 import { encryptData, decryptData } from '@/utils/encryption';
 import { exportUserDataToCsv } from '@/utils/exportUserData';
 import { initEventNotifications } from '@/utils/eventNotification';
@@ -108,7 +108,7 @@ const UserProfile = () => {
               toast({
                 title: "Profile Incomplete",
                 description: "Please complete your profile information, such as Matric Number, Department, and Level.",
-                variant: "warning"
+                variant: "destructive" // Changed from "warning" to "destructive" as only "default" and "destructive" are valid variants
               });
             }
           }
@@ -272,6 +272,13 @@ const UserProfile = () => {
   
   // Show different content based on user role
   const isStudent = user?.role === 'student' || user?.role === 'user';
+  
+  // Calculate attendance stats based on the user's data
+  // Fix: Remove references to mockUser, use actual values from userData or defaults
+  const totalServices = 24;
+  const absences = userData?.absences || 0;
+  const attended = totalServices - absences;
+  const attendancePercentage = Math.round((attended / totalServices) * 100);
   
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -608,34 +615,28 @@ const UserProfile = () => {
                           <Card className="bg-card shadow-sm">
                             <CardContent className="p-4">
                               <div className="text-sm text-muted-foreground mb-1">Total Services</div>
-                              <div className="text-2xl font-bold text-foreground">24</div>
+                              <div className="text-2xl font-bold text-foreground">{totalServices}</div>
                             </CardContent>
                           </Card>
                           
                           <Card className="bg-card shadow-sm">
                             <CardContent className="p-4">
                               <div className="text-sm text-muted-foreground mb-1">Attended</div>
-                              <div className="text-2xl font-bold text-foreground">
-                                {24 - (mockUser?.absences || 0)}
-                              </div>
+                              <div className="text-2xl font-bold text-foreground">{attended}</div>
                             </CardContent>
                           </Card>
                           
                           <Card className="bg-card shadow-sm">
                             <CardContent className="p-4">
                               <div className="text-sm text-muted-foreground mb-1">Absences</div>
-                              <div className="text-2xl font-bold text-red-500">
-                                {mockUser?.absences || 0}
-                              </div>
+                              <div className="text-2xl font-bold text-red-500">{absences}</div>
                             </CardContent>
                           </Card>
                           
                           <Card className="bg-card shadow-sm">
                             <CardContent className="p-4">
                               <div className="text-sm text-muted-foreground mb-1">Percentage</div>
-                              <div className="text-2xl font-bold text-foreground">
-                                {Math.round(((24 - (mockUser?.absences || 0)) / 24) * 100)}%
-                              </div>
+                              <div className="text-2xl font-bold text-foreground">{attendancePercentage}%</div>
                             </CardContent>
                           </Card>
                         </div>
