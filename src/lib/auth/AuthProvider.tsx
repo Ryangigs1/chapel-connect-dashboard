@@ -24,25 +24,32 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     // Subscribe to auth state changes
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        // User is signed in
-        setUser(formatUser(firebaseUser));
-        const lastVisit = localStorage.getItem('mtu_last_visit');
-        const now = new Date().toISOString();
-        
-        if (lastVisit) {
-          const lastDate = new Date(lastVisit);
-          const today = new Date();
+        try {
+          // Get the full user data including Firestore custom fields
+          const userData = await formatUser(firebaseUser);
+          setUser(userData);
           
-          if (lastDate.toDateString() !== today.toDateString()) {
-            setTimeout(() => {
-              showSuccessToast("Welcome back!", `Good to see you again, ${firebaseUser.displayName || 'User'}!`);
-            }, 1000);
+          const lastVisit = localStorage.getItem('mtu_last_visit');
+          const now = new Date().toISOString();
+          
+          if (lastVisit) {
+            const lastDate = new Date(lastVisit);
+            const today = new Date();
+            
+            if (lastDate.toDateString() !== today.toDateString()) {
+              setTimeout(() => {
+                showSuccessToast("Welcome back!", `Good to see you again, ${firebaseUser.displayName || 'User'}!`);
+              }, 1000);
+            }
           }
+          
+          localStorage.setItem('mtu_last_visit', now);
+        } catch (error) {
+          console.error("Error formatting user data:", error);
+          setUser(null);
         }
-        
-        localStorage.setItem('mtu_last_visit', now);
       } else {
         // User is signed out
         setUser(null);

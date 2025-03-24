@@ -1,4 +1,3 @@
-
 import { 
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -34,7 +33,12 @@ import { auth, db, storage } from "./index";
 import { User } from "../auth/types";
 
 // Convert Firebase user to our User type
-export const formatUser = (user: FirebaseUser, additionalData?: any): User => {
+export const formatUser = async (user: FirebaseUser): Promise<User> => {
+  // Get additional user data from Firestore
+  const userRef = doc(db, "users", user.uid);
+  const userDoc = await getDoc(userRef);
+  const additionalData = userDoc.exists() ? userDoc.data() : {};
+  
   return {
     id: user.uid,
     name: user.displayName || "User",
