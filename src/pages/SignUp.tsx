@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { toast as sonnerToast } from 'sonner';
-import { Eye, EyeOff, LockKeyhole, Mail, User } from 'lucide-react';
+import { Eye, EyeOff, LockKeyhole, Mail, User, BookOpen, BookText, Backpack } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { Separator } from "@/components/ui/separator";
 
@@ -14,6 +14,9 @@ const SignUp = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [matricNumber, setMatricNumber] = useState('');
+  const [department, setDepartment] = useState('');
+  const [level, setLevel] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -34,7 +37,7 @@ const SignUp = () => {
     if (!name || !email || !password || !confirmPassword) {
       toast({
         title: "Error",
-        description: "Please fill in all fields",
+        description: "Please fill in all required fields",
         variant: "destructive"
       });
       return;
@@ -60,7 +63,7 @@ const SignUp = () => {
 
     try {
       setLoading(true);
-      await signUp(email, password, name);
+      await signUp(email, password, name, matricNumber, department, level);
       
       sonnerToast.success("Account created successfully", {
         description: "You can now sign in with your credentials",
@@ -71,6 +74,9 @@ const SignUp = () => {
       setEmail('');
       setPassword('');
       setConfirmPassword('');
+      setMatricNumber('');
+      setDepartment('');
+      setLevel('');
       
       // After successful signup, redirect to sign-in page
       navigate('/sign-in');
@@ -138,6 +144,9 @@ const SignUp = () => {
             </svg>
             {googleLoading ? "Signing in..." : "Sign up with Google"}
           </Button>
+          <p className="text-xs text-center mt-2 text-muted-foreground">
+            Note: Google sign-in users will need to complete their profile later
+          </p>
         </div>
         
         <div className="relative animate-fade-up [animation-delay:400ms]">
@@ -185,7 +194,52 @@ const SignUp = () => {
               />
             </div>
             
+            <div className="relative animate-fade-up [animation-delay:550ms]">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Backpack className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <Input
+                id="matricNumber"
+                name="matricNumber"
+                type="text"
+                placeholder="Matric Number (Optional)"
+                value={matricNumber}
+                onChange={(e) => setMatricNumber(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
+            <div className="relative animate-fade-up [animation-delay:575ms]">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <BookOpen className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <Input
+                id="department"
+                name="department"
+                type="text"
+                placeholder="Department (Optional)"
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
             <div className="relative animate-fade-up [animation-delay:600ms]">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <BookText className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <Input
+                id="level"
+                name="level"
+                type="text"
+                placeholder="Level e.g. 300L (Optional)"
+                value={level}
+                onChange={(e) => setLevel(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
+            <div className="relative animate-fade-up [animation-delay:625ms]">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <LockKeyhole className="h-5 w-5 text-muted-foreground" />
               </div>
@@ -212,7 +266,7 @@ const SignUp = () => {
               </button>
             </div>
             
-            <div className="relative animate-fade-up [animation-delay:700ms]">
+            <div className="relative animate-fade-up [animation-delay:650ms]">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <LockKeyhole className="h-5 w-5 text-muted-foreground" />
               </div>
@@ -240,7 +294,7 @@ const SignUp = () => {
             </div>
           </div>
 
-          <div className="text-sm animate-fade-up [animation-delay:800ms]">
+          <div className="text-sm animate-fade-up [animation-delay:700ms]">
             <Link to="/sign-in" className="text-primary hover:text-primary/80 transition-colors">
               Already have an account? Sign in
             </Link>
@@ -248,7 +302,7 @@ const SignUp = () => {
 
           <Button
             type="submit"
-            className="w-full animate-fade-up [animation-delay:900ms]"
+            className="w-full animate-fade-up [animation-delay:750ms]"
             disabled={loading}
           >
             {loading ? "Creating account..." : "Sign up with Email"}

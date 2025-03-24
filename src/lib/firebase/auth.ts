@@ -43,12 +43,13 @@ export const formatUser = (user: FirebaseUser, additionalData?: any): User => {
     role: additionalData?.role || "user",
     providerData: user.providerData && user.providerData[0] ? user.providerData[0].providerId : "password",
     department: additionalData?.department || undefined,
-    level: additionalData?.level || undefined
+    level: additionalData?.level || undefined,
+    matricNumber: additionalData?.matricNumber || undefined
   };
 };
 
 // Update user profile data in Firestore
-export const updateUserProfile = async (userId: string, data: { name?: string; email?: string }): Promise<void> => {
+export const updateUserProfile = async (userId: string, data: { name?: string; email?: string; matricNumber?: string; department?: string; level?: string }): Promise<void> => {
   try {
     // Update Firestore document
     const userRef = doc(db, "users", userId);
@@ -113,7 +114,10 @@ export const signInWithGoogle = async (): Promise<User> => {
 export const signUpWithEmail = async (
   email: string, 
   password: string, 
-  name: string
+  name: string,
+  matricNumber?: string,
+  department?: string,
+  level?: string
 ): Promise<User> => {
   try {
     // Create user with Firebase Auth
@@ -134,6 +138,9 @@ export const signUpWithEmail = async (
       uid: user.uid,
       email: user.email,
       name,
+      matricNumber,
+      department,
+      level,
       role: "user",
       avatarUrl: "/avatar-default.png",
       createdAt: timestamp,
@@ -148,7 +155,7 @@ export const signUpWithEmail = async (
       console.warn("Could not send verification email:", error);
     }
     
-    return formatUser(user);
+    return formatUser(user, { matricNumber, department, level });
   } catch (error: any) {
     console.error("Error signing up with email and password", error);
     throw error;

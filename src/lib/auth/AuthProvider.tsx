@@ -107,10 +107,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const signUp = async (email: string, password: string, name: string): Promise<void> => {
+  const signUp = async (email: string, password: string, name: string, matricNumber?: string, department?: string, level?: string): Promise<void> => {
     try {
       setLoading(true);
-      await signUpWithEmail(email, password, name);
+      await signUpWithEmail(email, password, name, matricNumber, department, level);
       
       localStorage.setItem('mtu_last_visit', new Date().toISOString());
       
@@ -146,7 +146,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
   
-  const updateProfile = async (data: { name?: string; email?: string }): Promise<void> => {
+  const updateProfile = async (data: { name?: string; email?: string; matricNumber?: string; department?: string; level?: string }): Promise<void> => {
     if (!user) throw new Error("No user is signed in");
     
     try {

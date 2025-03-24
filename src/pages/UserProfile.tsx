@@ -1,5 +1,4 @@
-
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Card, 
@@ -30,9 +29,8 @@ import {
   Lock,
   Save,
   XCircle,
-  Upload,
-  Camera,
-  Download
+  Download,
+  AlertCircle
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import Navbar from '@/components/Navbar';
@@ -42,64 +40,124 @@ import { mockStudents } from '@/utils/mockData';
 import { encryptData, decryptData } from '@/utils/encryption';
 import { exportUserDataToCsv } from '@/utils/exportUserData';
 import { initEventNotifications } from '@/utils/eventNotification';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 const UserProfile = () => {
-  const { user } = useAuth();
+  const { user, updateProfile } = useAuth();
   const { theme } = useTheme();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   
-  // Find user in mock data using id not matricNumber
-  const mockUser = user?.role === 'student' ? 
-    mockStudents.find(s => s.matricNumber === (user?.id || '')) : 
-    null;
-  
-  // Try to get user data from localStorage first
-  const getUserFromStorage = () => {
-    try {
-      const storedData = localStorage.getItem('mtu_user_profile');
-      if (!storedData) return null;
-      
-      const decryptedData = decryptData(storedData);
-      return decryptedData;
-    } catch (error) {
-      console.error('Error retrieving user profile:', error);
-      return null;
-    }
-  };
-  
-  const storedUserData = getUserFromStorage();
-  
+  const [userData, setUserData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
-    name: storedUserData?.name || user?.name || '',
-    email: storedUserData?.email || user?.email || '',
-    phone: storedUserData?.phone || '08012345678',
-    department: storedUserData?.department || 'Computer Science',
-    level: storedUserData?.level || mockUser?.grade || '300L',
-    address: storedUserData?.address || 'Student Hostel, Block A Room 205',
-    emergencyContact: storedUserData?.emergencyContact || 'Mrs. Johnson - 08023456789',
-    bio: storedUserData?.bio || 'I am a dedicated student with focus on academic excellence and spiritual growth.',
-    avatarUrl: storedUserData?.avatarUrl || user?.avatarUrl || ''
+    name: '',
+    email: '',
+    phone: '',
+    department: '',
+    level: '',
+    matricNumber: '',
+    address: '',
+    emergencyContact: '',
+    bio: ''
   });
   
   const [settings, setSettings] = useState({
-    emailNotifications: storedUserData?.settings?.emailNotifications || true,
-    serviceReminders: storedUserData?.settings?.serviceReminders || true,
-    absenceAlerts: storedUserData?.settings?.absenceAlerts || true,
-    showProfileInDirectory: storedUserData?.settings?.showProfileInDirectory || true,
-    allowChaplainContact: storedUserData?.settings?.allowChaplainContact || true
+    emailNotifications: true,
+    serviceReminders: true,
+    absenceAlerts: true,
+    showProfileInDirectory: true,
+    allowChaplainContact: true
   });
   
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [isGoogleUser, setIsGoogleUser] = useState(false);
+  const [profileComplete, setProfileComplete] = useState(true);
   
   // Initialize event notifications
   useEffect(() => {
     const cleanupNotifications = initEventNotifications();
     return () => cleanupNotifications();
   }, []);
+  
+  // Fetch user data from Firestore
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user) return;
+      
+      try {
+        setLoading(true);
+        const userDocRef = doc(db, "users", user.id);
+        const userDoc = await getDoc(userDocRef);
+        
+        if (userDoc.exists()) {
+          const data = userDoc.data();
+          setUserData(data);
+          
+          // Check if it's a Google user
+          setIsGoogleUser(user.providerData === 'google.com');
+          
+          // Check if profile is complete for Google users
+          if (user.providerData === 'google.com') {
+            const isComplete = !!(data.matricNumber && data.department && data.level);
+            setProfileComplete(isComplete);
+            
+            if (!isComplete) {
+              toast({
+                title: "Profile Incomplete",
+                description: "Please complete your profile information, such as Matric Number, Department, and Level.",
+                variant: "warning"
+              });
+            }
+          }
+          
+          // Set form data from Firestore
+          setFormData({
+            name: user.name || '',
+            email: user.email || '',
+            phone: data.phone || '',
+            department: data.department || '',
+            level: data.level || '',
+            matricNumber: data.matricNumber || '',
+            address: data.address || '',
+            emergencyContact: data.emergencyContact || '',
+            bio: data.bio || 'I am a dedicated student with focus on academic excellence and spiritual growth.'
+          });
+          
+          // Set settings if available
+          if (data.settings) {
+            setSettings(data.settings);
+          }
+        } else {
+          // Use default values if no document exists
+          setFormData({
+            name: user.name || '',
+            email: user.email || '',
+            phone: '',
+            department: user.department || '',
+            level: user.level || '',
+            matricNumber: '',
+            address: '',
+            emergencyContact: '',
+            bio: 'I am a dedicated student with focus on academic excellence and spiritual growth.'
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        toast({
+          title: "Error",
+          description: "Could not load your profile data",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchUserData();
+  }, [user, toast]);
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -110,78 +168,68 @@ const UserProfile = () => {
     setSettings(prev => ({ ...prev, [setting]: !prev[setting] }));
   };
   
-  const saveToLocalStorage = (data: any) => {
-    try {
-      const encryptedData = encryptData(data);
-      localStorage.setItem('mtu_user_profile', encryptedData);
-    } catch (error) {
-      console.error('Error saving profile data:', error);
-      toast({
-        title: "Save error",
-        description: "Could not save your profile data",
-        variant: "destructive"
-      });
-    }
-  };
-  
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (!user) return;
+    
     setSaving(true);
     
-    // Save form data and settings
-    const profileData = {
-      ...formData,
-      settings
-    };
-    
-    saveToLocalStorage(profileData);
-    
-    // Simulate API save delay
-    setTimeout(() => {
-      setSaving(false);
+    try {
+      // Update user profile in Firebase
+      await updateProfile({
+        name: formData.name,
+        matricNumber: formData.matricNumber,
+        department: formData.department,
+        level: formData.level
+      });
+      
+      // Save form data and settings
+      const profileData = {
+        ...formData,
+        settings
+      };
+      
       setEditing(false);
       toast({
         title: "Profile updated",
         description: "Your profile has been updated successfully"
       });
-    }, 1000);
+      
+      // Update profile completion status for Google users
+      if (isGoogleUser) {
+        const isComplete = !!(formData.matricNumber && formData.department && formData.level);
+        setProfileComplete(isComplete);
+      }
+    } catch (error) {
+      console.error("Error saving profile:", error);
+      toast({
+        title: "Error",
+        description: "Could not save your profile data",
+        variant: "destructive"
+      });
+    } finally {
+      setSaving(false);
+    }
   };
   
   const handleCancel = () => {
     setEditing(false);
-    // Reset form data to stored values or defaults
-    const storedData = getUserFromStorage();
-    if (storedData) {
-      setFormData({
-        name: storedData.name || user?.name || '',
-        email: storedData.email || user?.email || '',
-        phone: storedData.phone || '08012345678',
-        department: storedData.department || 'Computer Science',
-        level: storedData.level || mockUser?.grade || '300L',
-        address: storedData.address || 'Student Hostel, Block A Room 205',
-        emergencyContact: storedData.emergencyContact || 'Mrs. Johnson - 08023456789',
-        bio: storedData.bio || 'I am a dedicated student with focus on academic excellence and spiritual growth.',
-        avatarUrl: storedData.avatarUrl || user?.avatarUrl || ''
-      });
-      setSettings(storedData.settings || {
-        emailNotifications: true,
-        serviceReminders: true,
-        absenceAlerts: true,
-        showProfileInDirectory: true,
-        allowChaplainContact: true
-      });
-    } else {
-      // Reset to defaults
+    // Reset form data to stored values
+    if (userData) {
       setFormData({
         name: user?.name || '',
         email: user?.email || '',
-        phone: '08012345678',
-        department: 'Computer Science',
-        level: mockUser?.grade || '300L',
-        address: 'Student Hostel, Block A Room 205',
-        emergencyContact: 'Mrs. Johnson - 08023456789',
-        bio: 'I am a dedicated student with focus on academic excellence and spiritual growth.',
-        avatarUrl: user?.avatarUrl || ''
+        phone: userData.phone || '',
+        department: userData.department || '',
+        level: userData.level || '',
+        matricNumber: userData.matricNumber || '',
+        address: userData.address || '',
+        emergencyContact: userData.emergencyContact || '',
+        bio: userData.bio || 'I am a dedicated student with focus on academic excellence and spiritual growth.'
       });
+      
+      if (userData.settings) {
+        setSettings(userData.settings);
+      }
     }
     
     toast({
@@ -199,87 +247,22 @@ const UserProfile = () => {
     return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
   };
   
-  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-    
-    const file = files[0];
-    
-    // Basic validation
-    if (!file.type.startsWith('image/')) {
-      toast({
-        title: "Invalid file type",
-        description: "Please upload an image file",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    // Size validation (2MB max)
-    if (file.size > 2 * 1024 * 1024) {
-      toast({
-        title: "File too large",
-        description: "Please upload an image smaller than 2MB",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    setUploadingAvatar(true);
-    
-    // Read file as base64
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64Image = reader.result as string;
-      
-      // Update form data with new avatar URL
-      setFormData(prev => ({ ...prev, avatarUrl: base64Image }));
-      
-      // Update user data in local storage
-      const storedData = getUserFromStorage() || {};
-      const updatedData = {
-        ...storedData,
-        avatarUrl: base64Image
-      };
-      saveToLocalStorage(updatedData);
-      
-      setUploadingAvatar(false);
-      toast({
-        title: "Avatar updated",
-        description: "Your profile picture has been updated"
-      });
-    };
-    
-    reader.onerror = () => {
-      setUploadingAvatar(false);
-      toast({
-        title: "Upload failed",
-        description: "Failed to read the image file",
-        variant: "destructive"
-      });
-    };
-    
-    reader.readAsDataURL(file);
-  };
-
   const handleDownloadData = () => {
     // Prepare data for export
-    const userData = {
+    const userDataForExport = {
       name: formData.name,
       email: formData.email,
       role: user?.role || 'student',
       department: formData.department,
       level: formData.level,
+      matricNumber: formData.matricNumber,
       phone: formData.phone,
       address: formData.address,
       emergencyContact: formData.emergencyContact,
-      lastLogin: new Date().toISOString(),
-      attendancePercentage: mockUser ? Math.round(((24 - (mockUser.absences || 0)) / 24) * 100) : 0,
-      totalServices: 24,
-      absences: mockUser?.absences || 0
+      lastLogin: new Date().toISOString()
     };
     
-    exportUserDataToCsv(userData);
+    exportUserDataToCsv(userDataForExport);
     
     toast({
       title: "Data downloaded",
@@ -315,61 +298,46 @@ const UserProfile = () => {
           <Clock />
         </div>
         
+        {isGoogleUser && !profileComplete && (
+          <Card className="bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800">
+            <CardContent className="p-4 flex items-center gap-3">
+              <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+              <div>
+                <p className="font-medium text-yellow-800 dark:text-yellow-300">
+                  Your profile is incomplete
+                </p>
+                <p className="text-sm text-yellow-700 dark:text-yellow-400">
+                  Please update your profile with your Matric Number, Department, and Level information.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        
         <div className="grid md:grid-cols-3 gap-6">
           <div className="md:col-span-1 space-y-6">
             <Card className="bg-card">
               <CardContent className="pt-6 flex flex-col items-center text-center">
-                <div className="relative group">
-                  <Avatar className="h-24 w-24 mb-4 group-hover:opacity-80 transition-opacity">
-                    <AvatarImage src={formData.avatarUrl} alt={user?.name || 'User'} />
+                <div className="relative">
+                  <Avatar className="h-24 w-24 mb-4">
+                    <AvatarImage src={user?.avatarUrl} alt={user?.name || 'User'} />
                     <AvatarFallback className="text-2xl bg-primary/10 text-primary">
                       {getUserInitials()}
                     </AvatarFallback>
                   </Avatar>
-                  
-                  <div 
-                    className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer avatar-upload-overlay"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <div className="bg-black/50 rounded-full h-8 w-8 flex items-center justify-center">
-                      <Camera className="h-5 w-5 text-white" />
-                    </div>
-                    <input 
-                      type="file"
-                      ref={fileInputRef}
-                      className="hidden"
-                      accept="image/*"
-                      onChange={handleAvatarUpload}
-                      disabled={uploadingAvatar}
-                    />
-                  </div>
                 </div>
                 
                 <h2 className="text-xl font-bold mb-1 text-foreground">{user?.name}</h2>
                 <p className="text-muted-foreground mb-4">
-                  {isStudent ? mockUser?.matricNumber : user?.role}
+                  {formData.matricNumber || (isStudent ? 'No Matric Number' : user?.role)}
                 </p>
                 
                 <div className="w-full space-y-2">
-                  <Button 
-                    variant="outline" 
-                    className="w-full text-foreground" 
-                    size="sm"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={uploadingAvatar}
-                  >
-                    {uploadingAvatar ? (
-                      <>
-                        <span className="loading-dots"></span>
-                        Uploading...
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="h-4 w-4 mr-1" />
-                        Change Profile Picture
-                      </>
-                    )}
-                  </Button>
+                  {isGoogleUser && (
+                    <p className="text-xs text-muted-foreground mb-2">
+                      Using Google profile picture
+                    </p>
+                  )}
                   
                   {!editing ? (
                     <Button 
@@ -413,7 +381,7 @@ const UserProfile = () => {
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <div>
                         <p className="text-sm text-muted-foreground">Level</p>
-                        <p className="font-medium text-foreground">{mockUser?.grade}</p>
+                        <p className="font-medium text-foreground">{formData.level || 'Not set'}</p>
                       </div>
                     </div>
                   )}
@@ -431,7 +399,7 @@ const UserProfile = () => {
                       <MapPin className="h-4 w-4 text-muted-foreground" />
                       <div>
                         <p className="text-sm text-muted-foreground">Department</p>
-                        <p className="font-medium text-foreground">Computer Science</p>
+                        <p className="font-medium text-foreground">{formData.department || 'Not set'}</p>
                       </div>
                     </div>
                   )}
@@ -501,7 +469,7 @@ const UserProfile = () => {
                           type="email" 
                           value={formData.email} 
                           onChange={handleInputChange}
-                          disabled={!editing}
+                          disabled={true}
                           className="text-foreground"
                         />
                       </div>
@@ -527,8 +495,9 @@ const UserProfile = () => {
                               name="level" 
                               value={formData.level} 
                               onChange={handleInputChange}
-                              disabled={true}
+                              disabled={!editing}
                               className="text-foreground"
+                              placeholder="e.g. 300L"
                             />
                           </div>
                           
@@ -539,8 +508,9 @@ const UserProfile = () => {
                               name="department" 
                               value={formData.department} 
                               onChange={handleInputChange}
-                              disabled={true}
+                              disabled={!editing}
                               className="text-foreground"
+                              placeholder="e.g. Computer Science"
                             />
                           </div>
                           
@@ -549,9 +519,11 @@ const UserProfile = () => {
                             <Input 
                               id="matricNumber" 
                               name="matricNumber" 
-                              value={mockUser?.matricNumber || ''} 
-                              disabled={true}
+                              value={formData.matricNumber} 
+                              onChange={handleInputChange}
+                              disabled={!editing}
                               className="text-foreground"
+                              placeholder="e.g. MTU/2020/0001"
                             />
                           </div>
                         </>
