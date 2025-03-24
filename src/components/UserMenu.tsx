@@ -121,11 +121,7 @@ const UserMenu = () => {
           <span>Events</span>
         </DropdownMenuItem>
         
-        <DropdownMenuItem className="cursor-pointer" onClick={() => navigateTo('/gallery')}>
-          <Image className="mr-2 h-4 w-4" />
-          <span>Gallery</span>
-        </DropdownMenuItem>
-        
+       
         <DropdownMenuItem className="cursor-pointer" onClick={() => navigateTo('/students')}>
           <Users className="mr-2 h-4 w-4" />
           <span>Students</span>
